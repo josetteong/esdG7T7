@@ -10,6 +10,14 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:root@localhost/SFR
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
+from flasgger import Swagger
+import yaml 
+
+with open("openapi.yaml") as f:
+    spec = yaml.safe_load(f)
+
+swagger = Swagger(app, template=spec)
+
 
 #Model 
 class Reservation(db.Model):
@@ -131,17 +139,7 @@ def parse_date_time(date_str: str, time_str: str):
 
 @app.route("/reservations", methods=["POST"])
 def create_reservation():
-    """
-    Create a reservation after Listing Service has already confirmed reserve success.
-        {
-        "listingId": 1,
-        "claimantId": "n-2001",
-        "reservedQty": 1,
-        "pickupDate": "2026-03-14",
-        "pickupTime": "21:00:00"
-        }
 
-    """
     try: 
         data = request.get_json(silent=True) or {}
 
@@ -240,6 +238,104 @@ def get_reservation_by_listing():
         return ({"message": "listingId query parameter required"}),400 
     
     return jsonify([l.to_dict() for l in listing_id]),200
+
+
+@app.route("/reservations/<reservationId>/cancel",methods=['PATCH'])
+def cancel_reservation(reservationId):
+
+    reservation = Reservation.query.get(reservationId)
+    
+    if not reservation:
+        return jsonify({"error": "Reservation not Found"}),404
+
+    reservationId = request.args.get("reservationId")
+
+    data = request.get_json(silent=True)
+
+    cancellation_type = data['cancellationType']
+
+    allowed_types = [
+            "GRACE",
+            "NON_GRACE",
+            "VENDOR",
+            "FAILEDCOLLECTION",
+            "EXPIRED"
+        ]
+    
+    if cancellation_type not in allowed_types:
+            return jsonify({
+                "error": "Invalid cancellation type",
+                "allowedTypes": allowed_types
+            }), 400
+
+    try:
+            reservation.reservation_status = "CANCELLED"
+            reservation.cancellation_type = cancellation_type
+            reservation.cancelled_at = datetime.utcnow()
+
+            db.session.commit()
+
+            return jsonify({
+                "reservationId": reservation.reservation_id,
+                "reservationStatus": reservation.reservation_status,
+                "cancellationType": reservation.cancellation_type,
+                "cancelledAt": reservation.cancelled_at.isoformat()
+            }), 200
+
+    except Exception as e:
+            db.session.rollback()
+            return jsonify({
+                "error": "Failed to cancel reservation",
+                "message": str(e)
+        }), 500
+
+@app.route("/reservations/overdue",methods=['GET'])
+def checkOverdue(): 
+
+    print(datetime.now())
+
+
+    overdue_reservations = Reservation.query.filter(
+        Reservation.reservation_status == "RESERVED",
+        Reservation.pickup_time < datetime.now()
+    ).all()
+
+
+    result = [
+        {
+            "reservationId": r.reservation_id,
+            "listingId": r.listing_id,
+            "claimantId": r.claimant_id,
+            "pickupWindowEnd": r.pickup_window_end.isoformat()
+        }
+        for r in overdue_reservations
+    ]
+
+    if result == []:
+        return jsonify({"message": "No reservations overdued"}),200
+
+    return jsonify(result),200
+
+@app.route("/reservations/<reservationId>/complete",methods=['PATCH'])
+def reservation_complete(reservationId):
+
+    reservation = Reservation.query.get(reservationId)
+
+    if not reservation:
+        return jsonify({
+            "error": "Reservation not Found"
+        }),404
+    
+    reservation.reservation_status = "COMPLETED"
+    reservation.completed_at = datetime.now().isoformat()
+
+    return jsonify({
+        "reservationId": reservation.reservation_id,
+        "reservation_status": reservation.reservation_status,
+        "completed_at": reservation.completed_at
+    }),201
+
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5002, debug=True)

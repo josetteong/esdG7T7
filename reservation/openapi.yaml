@@ -1,0 +1,115 @@
+swagger: "2.0"
+
+info:
+  title: SFRP Reservation Service API
+  description: API for managing food reservation lifecycle
+  version: "1.0"
+
+host: localhost:5002
+basePath: /
+
+schemes:
+  - http
+
+paths:
+
+  /reservations:
+    post:
+      tags:
+        - Reservations
+      summary: Create a reservation
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            required:
+              - listingId
+              - claimantId
+              - reservedQty
+              - pickupDate
+              - pickupTime
+            properties:
+              listingId:
+                type: integer
+              claimantId:
+                type: string
+              reservedQty:
+                type: integer
+              pickupDate:
+                type: string
+              pickupTime:
+                type: string
+      responses:
+        201:
+          description: Reservation created
+        400:
+          description: Invalid request
+
+    get:
+      tags:
+        - Reservations
+      summary: Get reservations by claimant
+      parameters:
+        - name: claimantId
+          in: query
+          type: string
+          required: true
+      responses:
+        200:
+          description: Reservations retrieved
+        404:
+          description: No reservations found
+
+  /reservations/overdue:
+    get:
+      tags:
+        - Reservations
+      summary: Get overdue reservations
+      responses:
+        200:
+          description: List of overdue reservations
+
+  /reservations/{reservationId}/cancel:
+    patch:
+      tags:
+        - Reservations
+      summary: Cancel reservation
+      parameters:
+        - name: reservationId
+          in: path
+          type: integer
+          required: true
+        - in: body
+          name: body
+          schema:
+            type: object
+            properties:
+              cancellationType:
+                type: string
+                enum:
+                  - GRACE
+                  - NON_GRACE
+                  - VENDOR
+                  - FAILEDCOLLECTION
+                  - EXPIRED
+      responses:
+        200:
+          description: Reservation cancelled
+
+  /reservations/{reservationId}/complete:
+    patch:
+      tags:
+        - Reservations
+      summary: Complete reservation
+      parameters:
+        - name: reservationId
+          in: path
+          type: integer
+          required: true
+      responses:
+        200:
+          description: Reservation completed
+        404:
+          description: Reservation not Found.
