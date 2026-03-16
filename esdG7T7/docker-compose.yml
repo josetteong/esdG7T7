@@ -2,21 +2,29 @@ name: esd-project
 
 services:
   listing-service:
-    build: ./listing-service
+    build:
+      context: .
+      dockerfile: ./listing-service/Dockerfile
     ports:
       - "8001:8000"
 
   reservation-service:
-    build: ./reservation-service
+    build:
+      context: .
+      dockerfile: ./reservation-service/Dockerfile
     ports:
       - "8002:8000"
 
   strike-service:
-    build: ./strike-service
+    build:
+      context: .
+      dockerfile: ./strike-service/Dockerfile
     ports:
       - "8003:8000"
 
   notification-service:
-    build: ./notification-service
+    build:
+      context: .
+      dockerfile: ./notification-service/Dockerfile
     ports:
       - "8004:8000"
