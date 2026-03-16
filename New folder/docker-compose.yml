@@ -1,0 +1,22 @@
+name: esd-project
+
+services:
+  listing-service:
+    build: ./listing-service
+    ports:
+      - "8001:8000"
+
+  reservation-service:
+    build: ./reservation-service
+    ports:
+      - "8002:8000"
+
+  strike-service:
+    build: ./strike-service
+    ports:
+      - "8003:8000"
+
+  notification-service:
+    build: ./notification-service
+    ports:
+      - "8004:8000"

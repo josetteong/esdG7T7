@@ -1,0 +1,15 @@
+from enum import Enum
+
+class ListingStatus(str, Enum):
+    AVAILABLE = "AVAILABLE"
+    FULLY_RESERVED = "FULLY_RESERVED"
+    CANCELLED = "CANCELLED"
+    EXPIRED = "EXPIRED"
+    COLLECTED = "COLLECTED"
+
+class ReservationStatus(str, Enum):
+    RESERVED = "RESERVED"
+    COMPLETED = "COMPLETED"
+    CANCELLED = "CANCELLED"
+    EXPIRED = "EXPIRED"
+    MISSED_PICKUP = "MISSED_PICKUP"
