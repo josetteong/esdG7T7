@@ -1,3 +1,8 @@
+# CI for Python services + OutSystems Bridge
+# - Runs pytest for each FastAPI service in esdG7T7/<service>
+# - Validates the OutSystems notification bridge remains buildable by installing
+#   Node deps and requiring its modules (no external services/secrets needed).
+
 name: CI
 
 on:
@@ -5,31 +10,62 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  # Allow manual runs from the Actions tab
+  workflow_dispatch:
 
 jobs:
   test:
+    # Matrix tests for all Python services
     runs-on: ubuntu-latest
     strategy:
+      # Don't cancel other services if one fails
+      fail-fast: false
       matrix:
         service: [listing-service, reservation-service, strike-service, notification-service]
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python 3.11
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      
+
       - name: Install dependencies for ${{ matrix.service }}
+        # Services live under esdG7T7/<service>
+        working-directory: esdG7T7/${{ matrix.service }}
         run: |
           python -m pip install --upgrade pip
-          cd ${{ matrix.service }}
           pip install -r requirements.txt
-      
+
       - name: Run tests for ${{ matrix.service }}
+        # Add parent to PYTHONPATH so imports like `from shared.enums import ...` resolve
         env:
           PYTHONPATH: ..
+        working-directory: esdG7T7/${{ matrix.service }}
         run: |
-          cd ${{ matrix.service }}
           python -m pytest -v
+
+  bridge:
+    name: OutSystems Bridge
+    # Ensures the Node-based bridge used by OutSystems remains installable and loadable.
+    # This does NOT start the bridge or connect to RabbitMQ/Telegram; it only verifies
+    # the code and dependencies are healthy in CI.
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: esdG7T7/notification-service/bridge
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+      - name: Install bridge dependencies
+        # Use npm install (no lockfile present). If you add package-lock.json, we will switch to `npm ci`.
+        run: npm install --no-audit --no-fund --progress=false
+      - name: Verify bridge entrypoint and deps
+        # Require expected modules so CI fails fast if a dependency or import breaks.
+        run: |
+          test -f index.js
+          node -e "require('express'); require('amqplib'); require('axios'); require('node-telegram-bot-api'); console.log('deps ok')"
