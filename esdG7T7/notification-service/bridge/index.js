@@ -22,24 +22,24 @@ const bot = new TelegramBot(TELEGRAM_BOT_TOKEN, { polling: true });
 
 // Debug - log all messages
 bot.on('message', (msg) => {
-  console.log('📩 Bot received:', msg.text, '| chatId:', msg.chat.id);
+  console.log('Bot received:', msg.text, '| chatId:', msg.chat.id);
 });
 
 // Handle /start TOKEN
 bot.onText(/\/start (.+)/, (msg, match) => {
   const chatId = msg.chat.id;
   const token = match[1];
-  console.log(`🔑 Start received - token: ${token}, chatId: ${chatId}`);
+  console.log(`Start received - token: ${token}, chatId: ${chatId}`);
 
   if (pendingTokens[token]) {
     const { userId } = pendingTokens[token];
     userChatIds[userId] = chatId;
     delete pendingTokens[token];
-    console.log(`✅ User ${userId} linked to chatId ${chatId}`);
-    bot.sendMessage(chatId, `✅ Connected! You will now receive Food Rescue notifications.`);
+    console.log(`User ${userId} linked to chatId ${chatId}`);
+    bot.sendMessage(chatId, `Connected! You will now receive Food Rescue notifications.`);
   } else {
-    console.log(`❌ Token ${token} not found`);
-    bot.sendMessage(chatId, `❌ Invalid or expired link. Please generate a new one from the app.`);
+    console.log(`Token ${token} not found`);
+    bot.sendMessage(chatId, `Invalid or expired link. Please generate a new one from the app.`);
   }
 });
 
@@ -66,13 +66,13 @@ async function connectRabbitMQ(retries = 10, delay = 3000) {
         await channel.bindQueue(queue, 'food_rescue', queue);
       }
 
-      console.log('✅ Connected to RabbitMQ!');
+      console.log('Connected to RabbitMQ!');
 
       // ─── CONSUMERS ─────────────────────────────────
       channel.consume('reservation.created', async (msg) => {
         if (msg) {
           const data = JSON.parse(msg.content.toString());
-          console.log('📨 reservation.created:', data);
+          console.log('reservation.created:', data);
           await sendTelegramToUser(data.recipientId, data.message);
           channel.ack(msg);
         }
@@ -81,7 +81,7 @@ async function connectRabbitMQ(retries = 10, delay = 3000) {
       channel.consume('reservation.cancelled', async (msg) => {
         if (msg) {
           const data = JSON.parse(msg.content.toString());
-          console.log('📨 reservation.cancelled:', data);
+          console.log('reservation.cancelled:', data);
           await sendTelegramToUser(data.recipientId, data.message);
           channel.ack(msg);
         }
@@ -90,7 +90,7 @@ async function connectRabbitMQ(retries = 10, delay = 3000) {
       channel.consume('reservation.collected', async (msg) => {
         if (msg) {
           const data = JSON.parse(msg.content.toString());
-          console.log('📨 reservation.collected:', data);
+          console.log('reservation.collected:', data);
           await sendTelegramToUser(data.recipientId, data.message);
           channel.ack(msg);
         }
@@ -99,7 +99,7 @@ async function connectRabbitMQ(retries = 10, delay = 3000) {
       channel.consume('listing.expired', async (msg) => {
         if (msg) {
           const data = JSON.parse(msg.content.toString());
-          console.log('📨 listing.expired:', data);
+          console.log('listing.expired:', data);
           await sendTelegramToUser(data.recipientId, data.message);
           channel.ack(msg);
         }
@@ -108,7 +108,7 @@ async function connectRabbitMQ(retries = 10, delay = 3000) {
       channel.consume('claimant.penalty_assigned', async (msg) => {
         if (msg) {
           const data = JSON.parse(msg.content.toString());
-          console.log('📨 claimant.penalty_assigned:', data);
+          console.log('claimant.penalty_assigned:', data);
           await sendTelegramToUser(data.recipientId, data.message);
           channel.ack(msg);
         }
@@ -116,7 +116,7 @@ async function connectRabbitMQ(retries = 10, delay = 3000) {
 
       return;
     } catch (err) {
-      console.log(`❌ Retrying in ${delay/1000}s...`, err.message);
+      console.log(`Retrying in ${delay/1000}s...`, err.message);
       await new Promise(res => setTimeout(res, delay));
     }
   }
@@ -127,7 +127,7 @@ async function connectRabbitMQ(retries = 10, delay = 3000) {
 async function sendTelegramToUser(userId, text) {
   const chatId = userChatIds[userId];
   if (!chatId) {
-    console.log(`⚠️ No Telegram registered for user ${userId}`);
+    console.log(`No Telegram registered for user ${userId}`);
     return;
   }
   try {
@@ -135,9 +135,9 @@ async function sendTelegramToUser(userId, text) {
       `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
       { chat_id: chatId, text, parse_mode: 'HTML' }
     );
-    console.log(`✅ Telegram sent to ${userId}`);
+    console.log(`Telegram sent to ${userId}`);
   } catch (err) {
-    console.error(`❌ Failed to send Telegram:`, err.message);
+    console.error(`Failed to send Telegram:`, err.message);
   }
 }
 
@@ -155,7 +155,7 @@ app.post('/publish', (req, res) => {
     Buffer.from(JSON.stringify(payload)),
     { persistent: true }
   );
-  console.log(`📤 Published to ${routingKey}:`, payload);
+  console.log(`Published to ${routingKey}:`, payload);
   res.json({ status: 'published', routingKey });
 });
 
@@ -178,7 +178,7 @@ app.post('/register/generate-link', (req, res) => {
   const { userId, username } = req.body;
   const token = Math.random().toString(36).substring(2, 10).toUpperCase();
   pendingTokens[token] = { userId, username };
-  console.log(`🔗 Token ${token} for user ${userId}`);
+  console.log(`Token ${token} for user ${userId}`);
   res.json({
     success: true,
     telegramLink: `https://t.me/${BOT_USERNAME}?start=${token}`
@@ -192,5 +192,5 @@ app.get('/register/status/:userId', (req, res) => {
 });
 
 // ─── START ────────────────────────────────────────────
-app.listen(3000, () => console.log('🚀 Bridge running on port 3000'));
+app.listen(3000, () => console.log('Bridge running on port 3000'));
 connectRabbitMQ();

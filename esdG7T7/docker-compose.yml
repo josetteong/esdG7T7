@@ -28,3 +28,42 @@ services:
       dockerfile: ./notification-service/Dockerfile
     ports:
       - "8004:8000"
+
+  expiry-monitor-service:
+    build:
+      context: .
+      dockerfile: ./expiry-monitor-service/Dockerfile
+    ports:
+      - "8005:5000"
+    environment:
+      - LISTING_SERVICE_URL=http://listing-service:8000
+      - CRON_INTERVAL_MINUTES=1
+    depends_on:
+      - listing-service
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+  bridge:
+    build: ./notification-service/bridge
+    container_name: rabbitmq-bridge
+    ports:
+      - "3000:3000"
+    environment:
+      RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID}
+    depends_on:
+      - rabbitmq
+
+volumes:
+  rabbitmq_data:
