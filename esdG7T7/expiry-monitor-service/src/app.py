@@ -1,7 +1,9 @@
-import os
+import json
 import logging
+import os
 from datetime import datetime, timezone
 
+import pika
 import requests
 from flask import Flask, jsonify
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -11,10 +13,35 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 logger = logging.getLogger(__name__)
 
 LISTING_SERVICE_URL = os.getenv("LISTING_SERVICE_URL", "http://listing-service:8000")
+RABBITMQ_URL = os.getenv("RABBITMQ_URL", "amqp://admin:admin123@rabbitmq:5672")
 CRON_INTERVAL_MINUTES = int(os.getenv("CRON_INTERVAL_MINUTES", "1"))
+EXCHANGE = "food_rescue"
 
 EXPIRABLE_STATUSES = {"AVAILABLE", "FULLY_RESERVED"}
 
+
+# ─── RABBITMQ PUBLISHER ──────────────────────────────────────────────────────
+
+def _publish(routing_key: str, payload: dict):
+    """Open a short-lived connection, publish one message, then close."""
+    try:
+        params = pika.URLParameters(RABBITMQ_URL)
+        connection = pika.BlockingConnection(params)
+        channel = connection.channel()
+        channel.exchange_declare(exchange=EXCHANGE, exchange_type="topic", durable=True)
+        channel.basic_publish(
+            exchange=EXCHANGE,
+            routing_key=routing_key,
+            body=json.dumps(payload),
+            properties=pika.BasicProperties(delivery_mode=2),  # persistent
+        )
+        connection.close()
+        logger.info("Published to [%s]: %s", routing_key, payload)
+    except Exception as e:
+        logger.error("Failed to publish to RabbitMQ: %s", e)
+
+
+# ─── CORE LOGIC ──────────────────────────────────────────────────────────────
 
 def check_and_expire_listings():
     logger.info("Running expiry check...")
@@ -51,6 +78,16 @@ def check_and_expire_listings():
                 patch_resp.raise_for_status()
                 logger.info("Expired listing %s (%s)", listing_id, listing.get("food_name"))
                 expired_ids.append(listing_id)
+
+                # ── Publish internal event so reservation-service subscribes,
+                #    cancels reservations, and notifies affected claimants via Telegram
+                _publish("listing.expired.internal", {
+                    "listing_id": listing_id,
+                    "vendor_id": listing.get("vendor_id"),
+                    "food_name": listing.get("food_name"),
+                    "expired_at": now.isoformat(),
+                })
+
             except requests.RequestException as e:
                 logger.error("Failed to expire listing %s: %s", listing_id, e)
                 failed_ids.append(listing_id)
@@ -59,6 +96,8 @@ def check_and_expire_listings():
     return {"expired": expired_ids, "failed": failed_ids}
 
 
+# ─── ROUTES ──────────────────────────────────────────────────────────────────
+
 @app.route("/health")
 def health():
     return jsonify({"status": "ok"})
@@ -66,10 +105,11 @@ def health():
 
 @app.route("/trigger", methods=["POST"])
 def trigger():
-    """Manually trigger the expiry check (also called by cron)."""
     result = check_and_expire_listings()
     return jsonify(result)
 
+
+# ─── STARTUP ─────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
     scheduler = BackgroundScheduler()
@@ -77,7 +117,7 @@ if __name__ == "__main__":
         check_and_expire_listings,
         "interval",
         minutes=CRON_INTERVAL_MINUTES,
-        next_run_time=datetime.now(),  # run immediately on startup too
+        next_run_time=datetime.now(),
     )
     scheduler.start()
     logger.info("Scheduler started — running every %d minute(s)", CRON_INTERVAL_MINUTES)

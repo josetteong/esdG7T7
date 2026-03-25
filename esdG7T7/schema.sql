@@ -127,6 +127,19 @@ CREATE TABLE reservations (
 );
 
 -- ============================================================
+--  TELEGRAM REGISTRATION DB
+-- ============================================================
+
+CREATE TABLE telegram_registrations (
+    user_id         VARCHAR(255) PRIMARY KEY,
+    chat_id         BIGINT,
+    token           VARCHAR(50),
+    is_registered   BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    registered_at   TIMESTAMPTZ
+);
+
+-- ============================================================
 --  NOTIFICATION DB
 -- ============================================================
 

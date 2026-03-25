@@ -1,8 +1,18 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from .routes import router
+from .consumer import start_consumer
 
-app = FastAPI(title="Reservation Service")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    start_consumer()   # starts AMQP subscriber thread on startup
+    yield
+
+
+app = FastAPI(title="Reservation Service", lifespan=lifespan)
 app.include_router(router)
+
 
 @app.get("/health")
 def health():
