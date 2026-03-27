@@ -3,7 +3,7 @@ from datetime import datetime
 from shared.enums import ListingStatus
 
 class CreateListingRequest(BaseModel):
-    vendor_id: str
+    vendor_id: int
     food_name: str
     total_quantity: int
     expiry_time: datetime
@@ -21,11 +21,11 @@ class ListingResponse(BaseModel):
 
 class ReserveRequest(BaseModel):
     reservation_qty: int
-    claimant_id: str
+    claimant_id: int
     pickup_time: datetime
 
 class ReleaseRequest(BaseModel):
     qty: int
 
 class MarkCollectedRequest(BaseModel):
-    claimant_id: str
+    claimant_id: int

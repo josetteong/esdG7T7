@@ -14,55 +14,62 @@ import threading
 import time
 
 import pika
-import requests
 
 from .service import expire_reservations_for_listing
 
 logger = logging.getLogger(__name__)
 
 RABBITMQ_URL = os.getenv("RABBITMQ_URL", "amqp://admin:admin123@rabbitmq:5672")
-OUTSYSTEMS_NOTIFY_URL = os.getenv(
-    "OUTSYSTEMS_NOTIFY_URL",
-    "https://personal-42atob5v.outsystemscloud.com/Notification/rest/NotificationAPI/notify",
-)
 EXCHANGE = "food_rescue"
 ROUTING_KEY = "listing.expired.internal"
-
-
-def _notify_claimant(claimant_id: str, food_name: str):
-    """Call OutSystems Notify API → OutSystems PostPublish → bridge → RabbitMQ → Telegram."""
-    try:
-        resp = requests.post(
-            OUTSYSTEMS_NOTIFY_URL,
-            json={
-                "RecipientId": claimant_id,
-                "Type": "listing.expired",
-                "Message": (
-                    f"Your reservation for {food_name} has been cancelled "
-                    f"because the listing has expired."
-                ),
-            },
-            timeout=10,
-        )
-        resp.raise_for_status()
-        logger.info("OutSystems Notify sent for claimant %s", claimant_id)
-    except requests.RequestException as e:
-        logger.error("Failed to call OutSystems Notify for claimant %s: %s", claimant_id, e)
 
 
 def _on_listing_expired(channel, method, properties, body):
     data = json.loads(body)
     listing_id = data["listing_id"]
-    food_name = data.get("food_name", "a listing")
+    vendor_id  = data.get("vendor_id")
+    food_name  = data.get("food_name", "a listing")
     logger.info("Received listing.expired.internal for listing %s (%s)", listing_id, food_name)
 
     # 1. Cancel all active reservations in DB
     cancelled = expire_reservations_for_listing(listing_id)
     logger.info("Cancelled %d reservation(s) for listing %s", len(cancelled), listing_id)
 
-    # 2. Notify each affected claimant via OutSystems
+    # 2. Publish listing.expired per claimant → notification-service consumer handles OutSystems
     for reservation in cancelled:
-        _notify_claimant(reservation["claimant_id"], food_name)
+        channel.basic_publish(
+            exchange=EXCHANGE,
+            routing_key="listing.expired",
+            body=json.dumps({
+                "recipient_id": reservation["claimant_id"],
+                "recipient_type": "CLAIMANT",
+                "notification_type": "LISTING_EXPIRED",
+                "message": (
+                    f"Your reservation for {food_name} has been cancelled "
+                    f"because the listing has expired."
+                ),
+            }),
+            properties=pika.BasicProperties(delivery_mode=2),
+        )
+        logger.info("Published listing.expired for claimant %s", reservation["claimant_id"])
+
+    # 3. Publish listing.expired to vendor
+    if vendor_id:
+        channel.basic_publish(
+            exchange=EXCHANGE,
+            routing_key="listing.expired",
+            body=json.dumps({
+                "recipient_id": vendor_id,
+                "recipient_type": "VENDOR",
+                "notification_type": "LISTING_EXPIRED",
+                "message": (
+                    f"Your listing '{food_name}' has expired. "
+                    f"{len(cancelled)} reservation(s) have been cancelled."
+                ),
+            }),
+            properties=pika.BasicProperties(delivery_mode=2),
+        )
+        logger.info("Published listing.expired for vendor %s", vendor_id)
 
     channel.basic_ack(delivery_tag=method.delivery_tag)
 

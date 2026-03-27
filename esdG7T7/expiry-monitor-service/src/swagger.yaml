@@ -1,0 +1,29 @@
+swagger: "2.0"
+info:
+  title: Expiry Monitor Service
+  version: "1.0"
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        200:
+          description: OK
+
+  /trigger:
+    post:
+      summary: Manually trigger the listing expiry check job
+      responses:
+        200:
+          description: IDs of listings expired and failed
+          schema:
+            type: object
+            properties:
+              expired:
+                type: array
+                items:
+                  type: string
+              failed:
+                type: array
+                items:
+                  type: string

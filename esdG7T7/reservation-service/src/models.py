@@ -4,8 +4,8 @@ from shared.enums import ReservationStatus
 
 class Reservation(BaseModel):
     id: str
-    listing_id: str
-    claimant_id: str
+    listing_id: int
+    claimant_id: int
     reservation_qty: int
     pickup_time: datetime
     status: ReservationStatus = ReservationStatus.RESERVED

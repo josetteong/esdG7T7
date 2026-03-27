@@ -16,6 +16,7 @@ def _make_token(length=8):
 def _to_dict(r: TelegramRegistration) -> dict:
     return {
         "user_id": r.user_id,
+        "recipient_type": r.recipient_type,
         "chat_id": r.chat_id,
         "is_registered": r.is_registered,
         "telegram_link": f"https://t.me/{BOT_USERNAME}?start={r.token}" if r.token else None,
@@ -24,10 +25,10 @@ def _to_dict(r: TelegramRegistration) -> dict:
     }
 
 
-def create_registration(user_id: str) -> dict:
+def create_registration(user_id: str, recipient_type: str) -> dict:
     """Create or refresh a registration entry and return a Telegram link."""
     with get_db() as session:
-        reg = session.get(TelegramRegistration, user_id)
+        reg = session.get(TelegramRegistration, (user_id, recipient_type))
         if reg and reg.is_registered:
             return _to_dict(reg)   # already registered, return existing
 
@@ -35,7 +36,7 @@ def create_registration(user_id: str) -> dict:
         if reg:
             reg.token = token      # refresh token if not yet registered
         else:
-            reg = TelegramRegistration(user_id=user_id, token=token, is_registered=False)
+            reg = TelegramRegistration(user_id=user_id, token=token, recipient_type=recipient_type, is_registered=False)
             session.add(reg)
         session.flush()
         return _to_dict(reg)
@@ -56,8 +57,8 @@ def verify_token(token: str, chat_id: int) -> bool:
         return True
 
 
-def get_registration(user_id: str) -> dict | None:
+def get_registration(user_id: str, recipient_type: str) -> dict | None:
     """Fetch registration info — used by OutSystems to get chatId before notifying."""
     with get_db() as session:
-        reg = session.get(TelegramRegistration, user_id)
+        reg = session.get(TelegramRegistration, (user_id, recipient_type))
         return _to_dict(reg) if reg else None

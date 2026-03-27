@@ -3,7 +3,7 @@ from datetime import datetime
 
 class Notification(BaseModel):
     id: str
-    recipient_id: str
+    user_id: int
     message: str
     sent_at: datetime = datetime.now()
 

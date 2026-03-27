@@ -41,6 +41,11 @@ services:
       - "8004:8000"
     environment:
       - DATABASE_URL=${DATABASE_URL}
+      - RABBITMQ_URL=amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672
+      - OUTSYSTEMS_NOTIFY_URL=https://personal-42atob5v.outsystemscloud.com/Notification/rest/Notification/Notify
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
 
   registration-service:
     build:
@@ -66,6 +71,21 @@ services:
     depends_on:
       listing-service:
         condition: service_started
+      rabbitmq:
+        condition: service_healthy
+
+  handle-cancellation-service:
+    build:
+      context: .
+      dockerfile: ./handle-cancellation-service/Dockerfile
+    ports:
+      - "8007:5000"
+    environment:
+      - RESERVATION_SERVICE_URL=http://reservation-service:8000
+      - LISTING_SERVICE_URL=http://listing-service:8000
+      - STRIKE_SERVICE_URL=http://strike-service:8000
+      - RABBITMQ_URL=amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672
+    depends_on:
       rabbitmq:
         condition: service_healthy
 

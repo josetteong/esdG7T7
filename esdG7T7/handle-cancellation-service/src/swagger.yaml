@@ -1,0 +1,93 @@
+swagger: "2.0"
+info:
+  title: Handle Cancellation Service
+  version: "1.0"
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        200:
+          description: OK
+
+  /claimant/cancel:
+    post:
+      summary: Cancel a reservation as a claimant
+      description: >
+        Applies a strike if cancelled more than 10 minutes after reservation was made.
+        Relists the item if the listing has not yet expired.
+        Notifies both claimant and vendor via RabbitMQ.
+      parameters:
+        - in: body
+          name: body
+          schema:
+            type: object
+            required: [reservation_id, claimant_id]
+            properties:
+              reservation_id:
+                type: integer
+                example: 1
+              claimant_id:
+                type: integer
+                example: 1
+      responses:
+        200:
+          description: Cancellation result
+          schema:
+            type: object
+            properties:
+              reservation_id:   { type: integer }
+              claimant_id:      { type: integer }
+              listing_id:       { type: integer }
+              status:           { type: string, example: CANCELLED }
+              late_cancel:      { type: boolean }
+              strike_applied:   { type: boolean }
+              strike_count:     { type: integer }
+              suspended:        { type: boolean }
+              listing_relisted: { type: boolean }
+        400:
+          description: Missing required fields
+        403:
+          description: Claimant does not own this reservation
+        404:
+          description: Reservation not found
+        409:
+          description: Reservation is not in RESERVED status
+
+  /vendor/cancel:
+    patch:
+      summary: Cancel a listing as a vendor
+      description: >
+        Cancels the listing and all active reservations under it.
+        Notifies all affected claimants via RabbitMQ.
+      parameters:
+        - in: body
+          name: body
+          schema:
+            type: object
+            required: [listing_id, vendor_id]
+            properties:
+              listing_id:
+                type: integer
+                example: 1
+              vendor_id:
+                type: integer
+                example: 1
+      responses:
+        200:
+          description: Cancellation result
+          schema:
+            type: object
+            properties:
+              listing_id:             { type: integer }
+              vendor_id:              { type: integer }
+              status:                 { type: string, example: CANCELLED }
+              reservations_cancelled: { type: integer }
+        400:
+          description: Missing required fields
+        403:
+          description: Vendor does not own this listing
+        404:
+          description: Listing not found
+        409:
+          description: Listing is not in a cancellable status

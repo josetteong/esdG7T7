@@ -5,7 +5,7 @@ class EligibilityResponse(BaseModel):
     reason: str | None = None
 
 class ApplyStrikeRequest(BaseModel):
-    claimant_id: str
+    claimant_id: int
 
 class StrikeResponse(BaseModel):
     claimant_id: str

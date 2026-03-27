@@ -1,0 +1,69 @@
+swagger: "2.0"
+info:
+  title: Registration Service
+  version: "1.0"
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        200:
+          description: OK
+
+  /registrations/claimant:
+    post:
+      summary: Register a claimant
+      parameters:
+        - in: body
+          name: body
+          schema:
+            type: object
+            required: [user_id]
+            properties:
+              user_id:
+                type: integer
+                example: 1
+      responses:
+        201:
+          description: Telegram onboarding link returned
+        400:
+          description: user_id missing
+
+  /registrations/vendor:
+    post:
+      summary: Register a vendor
+      parameters:
+        - in: body
+          name: body
+          schema:
+            type: object
+            required: [user_id]
+            properties:
+              user_id:
+                type: integer
+                example: 1
+      responses:
+        201:
+          description: Telegram onboarding link returned
+        400:
+          description: user_id missing
+
+  /registrations/{user_id}/{recipient_type}:
+    get:
+      summary: Get registration info (chatId) — called by OutSystems before notifying
+      parameters:
+        - in: path
+          name: user_id
+          type: string
+          required: true
+          example: "1"
+        - in: path
+          name: recipient_type
+          type: string
+          required: true
+          enum: [CLAIMANT, VENDOR]
+      responses:
+        200:
+          description: Registration info including chatId
+        404:
+          description: Not found

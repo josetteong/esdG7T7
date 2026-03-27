@@ -131,12 +131,14 @@ CREATE TABLE reservations (
 -- ============================================================
 
 CREATE TABLE telegram_registrations (
-    user_id         VARCHAR(255) PRIMARY KEY,
+    user_id         VARCHAR(255) NOT NULL,
     chat_id         BIGINT,
     token           VARCHAR(50),
+    recipient_type  recipient_type NOT NULL,
     is_registered   BOOLEAN NOT NULL DEFAULT FALSE,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    registered_at   TIMESTAMPTZ
+    registered_at   TIMESTAMPTZ,
+    PRIMARY KEY (user_id, recipient_type)
 );
 
 -- ============================================================
@@ -145,7 +147,7 @@ CREATE TABLE telegram_registrations (
 
 CREATE TABLE notifications (
     notification_id    BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    recipient_id       BIGINT NOT NULL,
+    user_id            BIGINT NOT NULL,
     recipient_type     recipient_type NOT NULL,
     notification_type  notification_type NOT NULL,
     message            TEXT NOT NULL,

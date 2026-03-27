@@ -3,8 +3,8 @@ from datetime import datetime
 from shared.enums import ListingStatus
 
 class Listing(BaseModel):
-    id: str
-    vendor_id: str
+    id: int
+    vendor_id: int
     food_name: str
     total_quantity: int
     reserved_qty: int = 0

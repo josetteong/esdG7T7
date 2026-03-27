@@ -1,14 +1,17 @@
 import json
 import logging
 import os
+import yaml
 from datetime import datetime, timezone
 
 import pika
 import requests
 from flask import Flask, jsonify
+from flasgger import Swagger
 from apscheduler.schedulers.background import BackgroundScheduler
 
 app = Flask(__name__)
+Swagger(app, template=yaml.safe_load(open("/app/src/swagger.yaml")))
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
 

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from .schemas import CreateReservationRequest, ReservationResponse
-from .service import create_reservation, get_reservation, get_reservations, complete_reservation, cancel_reservation, missed_pickup
+from .service import create_reservation, get_reservation, get_reservations, complete_reservation, cancel_reservation, missed_pickup, cancel_reservations_by_listing
 
 router = APIRouter()
 
@@ -40,3 +40,8 @@ def missed_pickup_endpoint(reservation_id: str):
     if not reservation:
         raise HTTPException(status_code=404, detail="Reservation not found")
     return reservation
+
+@router.patch("/reservations/cancel-by-listing/{listing_id}")
+def cancel_by_listing_endpoint(listing_id: str):
+    cancelled = cancel_reservations_by_listing(listing_id)
+    return {"cancelled": cancelled}

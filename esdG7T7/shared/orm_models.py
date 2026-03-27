@@ -89,6 +89,7 @@ class TelegramRegistration(Base):
     __tablename__ = "telegram_registrations"
 
     user_id = Column(String(255), primary_key=True)
+    recipient_type = Column(String(50), primary_key=True)
     chat_id = Column(BigInteger)
     token = Column(String(50))
     is_registered = Column(Boolean, nullable=False, default=False)
@@ -101,7 +102,7 @@ class Notification(Base):
 
     notification_id = Column(BigInteger, primary_key=True, autoincrement=True)
 
-    recipient_id = Column(BigInteger, nullable=False)
+    user_id = Column(BigInteger, nullable=False)
 
     recipient_type = Column(
         Enum("VENDOR", "CLAIMANT", name="recipient_type"),
@@ -111,6 +112,7 @@ class Notification(Base):
     notification_type = Column(
         Enum(
             "RESERVATION_CREATED",
+            "LISTING_EXPIRED",
             name="notification_type"
         ),
         nullable=False

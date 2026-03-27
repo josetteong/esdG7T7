@@ -3,8 +3,8 @@ from datetime import datetime
 from shared.enums import ReservationStatus
 
 class CreateReservationRequest(BaseModel):
-    listing_id: str
-    claimant_id: str
+    listing_id: int
+    claimant_id: int
     reservation_qty: int
     pickup_time: datetime
 

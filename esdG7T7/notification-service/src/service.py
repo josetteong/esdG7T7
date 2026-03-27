@@ -16,7 +16,7 @@ OUTSYSTEMS_NOTIFY_URL = os.getenv(
 def _to_dict(n: NotificationModel) -> dict:
     return {
         "id": str(n.notification_id),
-        "recipient_id": str(n.recipient_id),
+        "user_id": str(n.user_id),
         "recipient_type": n.recipient_type,
         "notification_type": n.notification_type,
         "message": n.message,
@@ -29,7 +29,7 @@ def _to_dict(n: NotificationModel) -> dict:
 def create_notification(request: CreateNotificationRequest) -> dict:
     with get_db() as session:
         notification = NotificationModel(
-            recipient_id=int(request.recipient_id),
+            user_id=int(request.user_id),
             recipient_type=request.recipient_type,
             notification_type=request.notification_type,
             message=request.message,
@@ -42,7 +42,8 @@ def create_notification(request: CreateNotificationRequest) -> dict:
             response = requests.post(
                 OUTSYSTEMS_NOTIFY_URL,
                 json={
-                    "RecipientId": str(request.recipient_id),
+                    "user_id": str(request.user_id),
+                    "recipient_type": request.recipient_type,
                     "Type": request.notification_type,
                     "Message": request.message,
                 },
