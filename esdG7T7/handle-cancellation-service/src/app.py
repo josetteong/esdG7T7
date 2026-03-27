@@ -17,15 +17,6 @@ def health():
 
 @app.route("/claimant/cancel", methods=["POST"])
 def cancel():
-    """
-    Entry point — called when a claimant clicks Cancel.
-
-    Expected body:
-        {
-            "reservation_id": 1,
-            "claimant_id":    1
-        }
-    """
     body = request.get_json()
     reservation_id = body.get("reservation_id")
     claimant_id = body.get("claimant_id")
@@ -39,15 +30,6 @@ def cancel():
 
 @app.route("/vendor/cancel", methods=["PATCH"])
 def vendor_cancel():
-    """
-    Entry point — called when a vendor cancels a listing.
-
-    Expected body:
-        {
-            "listing_id": 1,
-            "vendor_id":  1
-        }
-    """
     body = request.get_json()
     listing_id = body.get("listing_id")
     vendor_id = body.get("vendor_id")

@@ -28,6 +28,7 @@ EXCHANGE = "food_rescue"
 # All routing keys this service handles
 ROUTING_KEYS = [
     "claimant.listing.expired",
+    "vendor.listing.expired",
     "claimant.reservation.created",
     "claimant.reservation.cancelled",
     "vendor.reservation.cancelled",
