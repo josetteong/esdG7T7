@@ -8,6 +8,7 @@ This is a food listing and reservation system built with Python FastAPI microser
 - **reservation-service**: Handles reservations and their statuses. Port 8002
 - **strike-service**: Manages claimant strikes and eligibility. Port 8003
 - **notification-service**: Sends and records notifications. Port 8004
+- **reserve-composite-service**: Orchestrator of strike, listing, reservation, notification service
 
 ## Setup
 

@@ -65,5 +65,16 @@ services:
     depends_on:
       - rabbitmq
 
+  reserve-composite-service:
+    build: ./reserve-composite-service
+    ports:
+    - "8006:8000"
+    depends_on:
+    - listing-service
+    - reservation-service
+    - strike-service
+    - notification-service
+    - bridge
+
 volumes:
   rabbitmq_data:
