@@ -1,7 +1,16 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from .routes import router
+from .consumer import start_consumer
 
-app = FastAPI(title="Strike Service")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    start_consumer()
+    yield
+
+
+app = FastAPI(title="Strike Service", lifespan=lifespan)
 app.include_router(router)
 
 @app.get("/health")

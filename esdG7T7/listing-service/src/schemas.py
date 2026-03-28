@@ -13,7 +13,6 @@ class ListingResponse(BaseModel):
     vendor_id: str
     food_name: str
     total_quantity: int
-    reserved_qty: int
     remaining_qty: int
     expiry_time: datetime
     status: ListingStatus

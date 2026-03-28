@@ -1,0 +1,56 @@
+swagger: "2.0"
+info:
+  title: Collection Service
+  version: "1.0"
+  description: >
+    Composite service that handles food pickup collection by a claimant.
+    Validates the reservation, marks it as COMPLETED, and notifies both
+    the claimant and vendor via RabbitMQ.
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        200:
+          description: Service is healthy
+
+  /collect:
+    post:
+      summary: Mark a reservation as collected
+      description: >
+        Validates that the claimant owns the reservation, the status is RESERVED,
+        and the pickup window has not passed. On success, marks the reservation
+        as COMPLETED and publishes notifications to both claimant and vendor.
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            required: [reservation_id, claimant_id]
+            properties:
+              reservation_id:
+                type: integer
+                example: 1
+              claimant_id:
+                type: integer
+                example: 1
+      responses:
+        200:
+          description: Collection successful
+          schema:
+            type: object
+            properties:
+              reservation_id: { type: integer }
+              claimant_id:    { type: integer }
+              listing_id:     { type: integer }
+              vendor_id:      { type: integer }
+              status:         { type: string, example: COMPLETED }
+        400:
+          description: Missing required fields or reservation could not be completed
+        403:
+          description: Claimant does not own this reservation
+        404:
+          description: Reservation not found
+        409:
+          description: Reservation is not RESERVED or pickup window has passed

@@ -19,7 +19,8 @@ CREATE TYPE notification_type    AS ENUM (
     'RESERVATION_COMPLETED',
     'PICKUP_REMINDER',
     'LISTING_EXPIRED',
-    'STRIKE_ISSUED'
+    'STRIKE_ISSUED',
+    'MISSED_PICKUP'
 );
 CREATE TYPE delivery_status      AS ENUM ('PENDING','SENT','FAILED');
 
@@ -65,7 +66,7 @@ CREATE TABLE listings (
     food_name       VARCHAR(255) NOT NULL,
     description     TEXT,
     total_quantity  INT NOT NULL CHECK (total_quantity > 0),
-    -- reserved_qty and remaining_qty are derived from reservations, not stored
+    remaining_qty   INT NOT NULL,
     expiry_time     TIMESTAMPTZ NOT NULL,
     listing_status  listing_status NOT NULL DEFAULT 'AVAILABLE',
 

@@ -1,13 +1,8 @@
 from fastapi import APIRouter, HTTPException
-from .schemas import CreateNotificationRequest, NotificationResponse
-from .service import create_notification, get_notification, get_notifications
+from .schemas import NotificationResponse
+from .service import get_notification, get_notifications
 
 router = APIRouter()
-
-@router.post("/notifications", response_model=NotificationResponse)
-def create_notification_endpoint(request: CreateNotificationRequest):
-    notification = create_notification(request)
-    return notification
 
 @router.get("/notifications/{notification_id}", response_model=NotificationResponse)
 def get_notification_endpoint(notification_id: str):

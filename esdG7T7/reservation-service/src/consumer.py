@@ -45,7 +45,7 @@ def _on_listing_expired(channel, method, properties, body):
                 "recipient_type": "CLAIMANT",
                 "notification_type": "LISTING_EXPIRED",
                 "message": (
-                    f"Your reservation for {food_name} has been cancelled "
+                    f"Your reservation for '{food_name}' (Listing ID: {listing_id}) has been cancelled "
                     f"because the listing has expired."
                 ),
             }),
@@ -63,7 +63,7 @@ def _on_listing_expired(channel, method, properties, body):
                 "recipient_type": "VENDOR",
                 "notification_type": "LISTING_EXPIRED",
                 "message": (
-                    f"Your listing '{food_name}' has expired. "
+                    f"Your listing '{food_name}' (Listing ID: {listing_id}) has expired. "
                     f"{len(cancelled)} reservation(s) have been cancelled."
                 ),
             }),

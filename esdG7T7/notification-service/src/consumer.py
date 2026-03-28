@@ -32,6 +32,9 @@ ROUTING_KEYS = [
     "claimant.reservation.created",
     "claimant.reservation.cancelled",
     "vendor.reservation.cancelled",
+    "claimant.reservation.completed",
+    "vendor.reservation.completed",
+    "claimant.missed_collection",
     "claimant.penalty_assigned",
 ]
 

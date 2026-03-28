@@ -32,6 +32,7 @@ class Listing(Base):
     food_name = Column(String(255), nullable=False)
     description = Column(Text)
     total_quantity = Column(Integer, nullable=False)
+    remaining_qty = Column(Integer, nullable=False)
     expiry_time = Column(DateTime(timezone=True), nullable=False)
     listing_status = Column(String, nullable=False, default="AVAILABLE")
     created_at = Column(DateTime(timezone=True), default=_now)
@@ -112,7 +113,13 @@ class Notification(Base):
     notification_type = Column(
         Enum(
             "RESERVATION_CREATED",
+            "RESERVATION_CANCELLED",
+            "RESERVATION_RELEASED",
+            "RESERVATION_COMPLETED",
+            "PICKUP_REMINDER",
             "LISTING_EXPIRED",
+            "STRIKE_ISSUED",
+            "MISSED_PICKUP",
             name="notification_type"
         ),
         nullable=False

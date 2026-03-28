@@ -1,0 +1,33 @@
+swagger: "2.0"
+info:
+  title: Collection Monitoring Service
+  version: "1.0"
+  description: >
+    Cron-based service that detects missed food pickups.
+    Runs every CRON_INTERVAL_MINUTES minutes, finds RESERVED reservations
+    past their pickup_time, marks them as MISSED_PICKUP, releases qty back
+    to the listing, and publishes claimant.missed_collection to RabbitMQ
+    (consumed independently by strike-service and notification-service).
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        200:
+          description: Service is healthy
+
+  /trigger:
+    post:
+      summary: Manually trigger missed collection check
+      description: >
+        Immediately runs the same job that the cron scheduler executes.
+        Useful for testing without waiting for the next scheduled interval.
+      responses:
+        200:
+          description: Check triggered successfully
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: triggered

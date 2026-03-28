@@ -124,7 +124,7 @@ def handle_cancellation_claimant(reservation_id: int, claimant_id: int) -> tuple
             "recipient_type":     "VENDOR",
             "notification_type":  "LISTING_EXPIRED",
             "message": (
-                f"Your listing '{food_name}' has expired and will not be relisted "
+                f"Your listing '{food_name}' (Listing ID: {listing_id}) has expired and will not be relisted "
                 f"as the claimant cancelled after expiry."
             ),
         })
@@ -143,7 +143,7 @@ def handle_cancellation_claimant(reservation_id: int, claimant_id: int) -> tuple
         "recipient_type":    "CLAIMANT",
         "notification_type": "RESERVATION_CANCELLED",
         "message": (
-            f"Your reservation for '{food_name}' has been cancelled.{penalty_note}"
+            f"Your reservation for '{food_name}' (Listing ID: {listing_id}) has been cancelled.{penalty_note}"
         ),
     })
 
@@ -152,7 +152,7 @@ def handle_cancellation_claimant(reservation_id: int, claimant_id: int) -> tuple
         "recipient_type":    "VENDOR",
         "notification_type": "RESERVATION_CANCELLED",
         "message": (
-            f"A claimant has cancelled their reservation for '{food_name}'."
+            f"A claimant has cancelled their reservation for '{food_name}' (Listing ID: {listing_id})."
             + (" The listing has been relisted." if listing_valid else " The listing has expired.")
         ),
     })
@@ -225,7 +225,7 @@ def handle_cancellation_vendor(listing_id: int, vendor_id: int) -> tuple[dict, i
             "recipient_type":    "CLAIMANT",
             "notification_type": "RESERVATION_CANCELLED",
             "message": (
-                f"Your reservation for '{food_name}' has been cancelled "
+                f"Your reservation for '{food_name}' (Listing ID: {listing_id}) has been cancelled "
                 f"because the vendor has cancelled the listing."
             ),
         })
