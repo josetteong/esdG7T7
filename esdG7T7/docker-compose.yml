@@ -1,5 +1,9 @@
 name: esd-project
 
+networks:
+  esd-net:
+    driver: bridge
+
 services:
   listing-service:
     build:
@@ -9,6 +13,8 @@ services:
       - "8001:8000"
     environment:
       - DATABASE_URL=${DATABASE_URL}
+    networks:
+      - esd-net
 
   reservation-service:
     build:
@@ -23,6 +29,8 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
+    networks:
+      - esd-net
 
   strike-service:
     build:
@@ -36,6 +44,8 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
+    networks:
+      - esd-net
 
   notification-service:
     build:
@@ -50,6 +60,8 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
+    networks:
+      - esd-net
 
   registration-service:
     build:
@@ -61,6 +73,8 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - TELEGRAM_BOT_USERNAME=SFRB_Notif_BOt
+    networks:
+      - esd-net
 
   expiry-monitor-service:
     build:
@@ -77,6 +91,8 @@ services:
         condition: service_started
       rabbitmq:
         condition: service_healthy
+    networks:
+      - esd-net
 
   handle-cancellation-service:
     build:
@@ -92,6 +108,8 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
+    networks:
+      - esd-net
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -110,6 +128,8 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
+    networks:
+      - esd-net
 
 
   collection-service:
@@ -125,6 +145,8 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
+    networks:
+      - esd-net
 
   collection-monitoring-service:
     build:
@@ -144,6 +166,8 @@ services:
         condition: service_started
       rabbitmq:
         condition: service_healthy
+    networks:
+      - esd-net
 
   reserve-composite-service:
     build: ./reserve-composite-service
@@ -154,6 +178,27 @@ services:
     - reservation-service
     - strike-service
     - notification-service
+    networks:
+      - esd-net
+  
+# ----- Kong -----
+  kong:
+    image: kong:latest
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /kong/kong.yml
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_LISTEN: 0.0.0.0:8001
+    volumes:
+      - ./kong.yml:/kong/kong.yml
+    ports:
+      - "9000:8000"
+      - "9001:8001"
+    networks:
+      - esd-net
 
 volumes:
   rabbitmq_data:

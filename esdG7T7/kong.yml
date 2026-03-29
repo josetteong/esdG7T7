@@ -1,0 +1,50 @@
+_format_version: "2.1"
+
+services:
+  - name: listing-service
+    url: http://listing-service:8000
+    routes:
+      - name: listing-route
+        paths:
+          - /listings
+        strip_path: false
+
+  - name: reservation-service
+    url: http://reservation-service:8000
+    routes:
+      - name: reservation-route
+        paths:
+          - /reservations
+        strip_path: false
+
+  - name: strike-service
+    url: http://strike-service:8000
+    routes:
+      - name: strike-route
+        paths:
+          - /strikes
+        strip_path: false
+
+  - name: registration-service
+    url: http://registration-service:5000
+    routes:
+      - name: registration-route
+        paths:
+          - /registrations
+        strip_path: false
+
+  - name: reserve-composite-service
+    url: http://reserve-composite-service:8000
+    routes:
+      - name: reserve-composite-route
+        paths:
+          - /reserve
+        strip_path: false
+
+  - name: collection-service
+    url: http://collection-service:5000
+    routes:
+      - name: collection-route
+        paths:
+          - /collect
+        strip_path: false
