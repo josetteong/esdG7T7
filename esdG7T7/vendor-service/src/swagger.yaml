@@ -38,6 +38,31 @@ paths:
         400:
           description: Missing required fields
 
+  /vendors/login:
+    post:
+      summary: Sign in as a vendor
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            required: [email, password]
+            properties:
+              email:
+                type: string
+                example: "vendor@example.com"
+              password:
+                type: string
+                example: "securepassword123"
+      responses:
+        200:
+          description: Login successful
+          schema:
+            $ref: "#/definitions/VendorResponse"
+        401:
+          description: Incorrect email or password
+
   /vendors/{vendor_id}:
     get:
       summary: Get vendor by ID

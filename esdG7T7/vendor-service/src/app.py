@@ -1,9 +1,11 @@
 import yaml
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 from flasgger import Swagger
-from .service import create_vendor, get_vendor
+from .service import create_vendor, get_vendor, login_vendor
 
 app = Flask(__name__)
+CORS(app)
 Swagger(app, template=yaml.safe_load(open("/app/src/swagger.yaml")))
 
 
@@ -38,6 +40,26 @@ def get_vendor_endpoint(vendor_id):
     vendor = get_vendor(vendor_id)
     if not vendor:
         return jsonify({"error": "vendor not found"}), 404
+    return jsonify(vendor), 200
+
+
+@app.route("/vendors/login", methods=["POST"])
+def login_vendor_endpoint():
+    """Sign in as a vendor."""
+    body = request.get_json()
+    if not body:
+        return jsonify({"error": "request body required"}), 400
+
+    email = body.get("email")
+    password = body.get("password")
+
+    if not email or not password:
+        return jsonify({"error": "email and password are required"}), 400
+
+    vendor = login_vendor(email, password)
+    if not vendor:
+        return jsonify({"error": "incorrect email or password"}), 401
+
     return jsonify(vendor), 200
 
 

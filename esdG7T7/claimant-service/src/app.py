@@ -1,9 +1,11 @@
 import yaml
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 from flasgger import Swagger
-from .service import create_claimant, get_claimant
+from .service import create_claimant, get_claimant, login_claimant
 
 app = Flask(__name__)
+CORS(app)
 Swagger(app, template=yaml.safe_load(open("/app/src/swagger.yaml")))
 
 
@@ -38,6 +40,26 @@ def get_claimant_endpoint(claimant_id):
     claimant = get_claimant(claimant_id)
     if not claimant:
         return jsonify({"error": "claimant not found"}), 404
+    return jsonify(claimant), 200
+
+
+@app.route("/claimants/login", methods=["POST"])
+def login_claimant_endpoint():
+    """Sign in as a claimant."""
+    body = request.get_json()
+    if not body:
+        return jsonify({"error": "request body required"}), 400
+
+    email = body.get("email")
+    password = body.get("password")
+
+    if not email or not password:
+        return jsonify({"error": "email and password are required"}), 400
+
+    claimant = login_claimant(email, password)
+    if not claimant:
+        return jsonify({"error": "incorrect email or password"}), 401
+
     return jsonify(claimant), 200
 
 

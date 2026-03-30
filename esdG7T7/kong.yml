@@ -1,5 +1,27 @@
 _format_version: "2.1"
 
+plugins:
+  - name: cors
+    config:
+      origins:
+        - "http://localhost:5173"
+        - "http://localhost:3000"
+      methods:
+        - GET
+        - POST
+        - PUT
+        - PATCH
+        - DELETE
+        - OPTIONS
+      headers:
+        - Content-Type
+        - Authorization
+      exposed_headers:
+        - Content-Type
+      credentials: true
+      max_age: 3600
+      preflight_continue: false
+
 services:
   - name: listing-service
     url: http://listing-service:8000

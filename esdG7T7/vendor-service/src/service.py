@@ -1,4 +1,5 @@
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy import func
 from shared.db import get_db
 from shared.orm_models import Vendor
 
@@ -30,3 +31,15 @@ def get_vendor(vendor_id: int) -> dict | None:
     with get_db() as session:
         vendor = session.get(Vendor, vendor_id)
         return _to_dict(vendor) if vendor else None
+
+
+def login_vendor(email: str, password: str) -> dict | None:
+    with get_db() as session:
+        vendor = session.query(Vendor).filter(
+            func.lower(Vendor.contact_email) == email.lower().strip()
+        ).first()
+        if not vendor or not vendor.password_hash:
+            return None
+        if not check_password_hash(vendor.password_hash, password):
+            return None
+        return _to_dict(vendor)

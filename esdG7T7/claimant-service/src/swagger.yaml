@@ -38,6 +38,31 @@ paths:
         400:
           description: Missing required fields
 
+  /claimants/login:
+    post:
+      summary: Sign in as a claimant
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            required: [email, password]
+            properties:
+              email:
+                type: string
+                example: "jane@example.com"
+              password:
+                type: string
+                example: "securepassword123"
+      responses:
+        200:
+          description: Login successful
+          schema:
+            $ref: "#/definitions/ClaimantResponse"
+        401:
+          description: Incorrect email or password
+
   /claimants/{claimant_id}:
     get:
       summary: Get claimant by ID

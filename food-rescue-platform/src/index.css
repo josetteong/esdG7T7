@@ -1,0 +1,222 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'DM Sans', system-ui, sans-serif;
+    background: #F5F3EF;
+    color: #1A1A1A;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@layer components {
+  /* ── Buttons ── */
+  .btn {
+    @apply inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium border cursor-pointer transition-all active:scale-95 font-sans;
+    border-color: rgba(0,0,0,0.12);
+    background: #fff;
+    color: #1A1A1A;
+  }
+  .btn:hover { background: #F5F3EF; }
+  .btn-primary {
+    @apply text-white border-transparent;
+    background: #C8473A;
+  }
+  .btn-primary:hover { background: #A33328; }
+  .btn-teal {
+    @apply text-white border-transparent;
+    background: #1D9E75;
+  }
+  .btn-teal:hover { background: #0F6E56; }
+  .btn-danger {
+    background: rgba(200,71,58,0.07);
+    border-color: rgba(200,71,58,0.3);
+    color: #A33328;
+  }
+  .btn-danger:hover { background: rgba(200,71,58,0.13); }
+  .btn-success {
+    background: #E1F5EE;
+    border-color: #9FE1CB;
+    color: #085041;
+  }
+  .btn-success:hover { background: #C0E8D5; }
+  .btn-amber {
+    background: #FAEEDA;
+    border-color: #EF9F27;
+    color: #854F0B;
+  }
+  .btn-sm { @apply px-2.5 py-1 text-xs; }
+  .btn-full { @apply w-full justify-center; }
+
+  /* ── Cards ── */
+  .card {
+    background: #fff;
+    border: 0.5px solid rgba(0,0,0,0.08);
+    border-radius: 16px;
+    padding: 22px;
+  }
+  .card-hd {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+    border-bottom: 0.5px solid rgba(0,0,0,0.08);
+  }
+  .card-hd-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #C8473A;
+    flex-shrink: 0;
+  }
+  .card-hd-dot-teal { background: #1D9E75; }
+  .card-hd-title { font-size: 13px; font-weight: 500; color: #1A1A1A; }
+
+  /* ── Badges ── */
+  .badge {
+    @apply inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap;
+    letter-spacing: 0.03em;
+  }
+  .badge-available { background: #E1F5EE; color: #085041; }
+  .badge-reserved  { background: #E6F1FB; color: #0C447C; }
+  .badge-collected { background: #F1EFE8; color: #444441; }
+  .badge-cancelled { background: #FAECE7; color: #712B13; }
+  .badge-expired   { background: #FAEEDA; color: #854F0B; }
+  .badge-completed { background: #F1EFE8; color: #444441; }
+
+  /* ── Form ── */
+  .form-label {
+    display: block;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #6B6560;
+    margin-bottom: 5px;
+  }
+  .form-input {
+    width: 100%;
+    font-size: 13px;
+    padding: 9px 12px;
+    border: 0.5px solid rgba(0,0,0,0.14);
+    border-radius: 9px;
+    background: #F5F3EF;
+    color: #1A1A1A;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-input:focus { border-color: #1D9E75; }
+
+  /* ── Banners ── */
+  .banner {
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    line-height: 1.5;
+  }
+  .banner-info    { background: #E1F5EE; border: 0.5px solid #9FE1CB; color: #085041; }
+  .banner-warning { background: #FAEEDA; border: 0.5px solid #EF9F27; color: #854F0B; }
+  .banner-danger  { background: #FAECE7; border: 0.5px solid #C8473A; color: #712B13; }
+  .banner-success { background: #E1F5EE; border: 0.5px solid #9FE1CB; color: #085041; }
+
+  /* ── Metric card ── */
+  .metric-card {
+    background: #fff;
+    border: 0.5px solid rgba(0,0,0,0.08);
+    border-radius: 14px;
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    position: relative;
+    overflow: hidden;
+  }
+  .metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+  }
+  .metric-card.green::before { background: #1D9E75; }
+  .metric-card.blue::before  { background: #378ADD; }
+  .metric-card.clay::before  { background: #C8473A; }
+  .metric-card.amber::before { background: #EF9F27; }
+
+  .metric-icon {
+    width: 40px; height: 40px;
+    border-radius: 11px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .mi-green { background: #E1F5EE; }
+  .mi-blue  { background: #E6F1FB; }
+  .mi-amber { background: #FAEEDA; }
+  .mi-clay  { background: #FAECE7; }
+
+  /* ── Listing cards ── */
+  .listing-card {
+    background: #fff;
+    border: 0.5px solid rgba(0,0,0,0.08);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+  .listing-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 0.5px solid rgba(0,0,0,0.08);
+  }
+
+  /* ── Progress bar ── */
+  .prog-wrap {
+    height: 3px;
+    border-radius: 2px;
+    background: rgba(0,0,0,0.07);
+    overflow: hidden;
+  }
+  .prog-fill { height: 100%; border-radius: 2px; }
+
+  /* ── Strike dots ── */
+  .strike-dot {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(0,0,0,0.12);
+    background: #F5F3EF;
+    flex-shrink: 0;
+  }
+  .strike-dot.filled { background: #C8473A; border-color: #A33328; }
+
+  /* ── Misc ── */
+  .page-container { padding: 28px 28px 40px; max-width: 1160px; margin: 0 auto; }
+  .section-filter {
+    font-size: 11px;
+    padding: 5px 9px;
+    border: 0.5px solid rgba(0,0,0,0.1);
+    border-radius: 7px;
+    background: #fff;
+    color: #1A1A1A;
+    font-family: inherit;
+    cursor: pointer;
+    outline: none;
+  }
+  .meta-tag { font-size: 11px; color: #6B6560; }
+}
+
+@keyframes float-a {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes float-b {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+.float-a { animation: float-a 4s ease-in-out infinite; }
+.float-b { animation: float-b 4s ease-in-out infinite 1.5s; }
