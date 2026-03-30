@@ -4,7 +4,7 @@ AMQP subscriber for the reservation-service.
 Listens for "listing.expired.internal" events published by the expiry-monitor-service.
 For each expired listing:
   1. Cancels all active (RESERVED) reservations in the DB.
-  2. Calls OutSystems Notify API per affected claimant → OutSystems → bridge → RabbitMQ → Telegram.
+  2. Calls OutSystems Notify API per affected claimant - OutSystems sends Telegram directly (no local bridge).
 """
 
 import json
@@ -35,7 +35,7 @@ def _on_listing_expired(channel, method, properties, body):
     cancelled = expire_reservations_for_listing(listing_id)
     logger.info("Cancelled %d reservation(s) for listing %s", len(cancelled), listing_id)
 
-    # 2. Publish listing.expired per claimant → notification-service consumer handles OutSystems
+    # 2. Publish listing.expired per claimant - notification-service triggers OutSystems (no bridge)
     for reservation in cancelled:
         channel.basic_publish(
             exchange=EXCHANGE,
@@ -83,7 +83,7 @@ def _connect_and_consume():
 
             channel.exchange_declare(exchange=EXCHANGE, exchange_type="topic", durable=True)
 
-            # Named durable queue — persists across restarts, visible in management UI
+            # Named durable queue - persists across restarts, visible in management UI
             channel.queue_declare(queue="listing.expired.internal", durable=True)
             channel.queue_bind(exchange=EXCHANGE, queue="listing.expired.internal", routing_key=ROUTING_KEY)
 
@@ -91,13 +91,13 @@ def _connect_and_consume():
             channel.basic_consume(queue="listing.expired.internal", on_message_callback=_on_listing_expired)
 
             logger.info(
-                "AMQP consumer ready — subscribed to [%s] on exchange '%s'",
+                "AMQP consumer ready - subscribed to [%s] on exchange '%s'",
                 ROUTING_KEY, EXCHANGE,
             )
             channel.start_consuming()
 
         except Exception as e:
-            logger.error("AMQP consumer error: %s — retrying in 5s", e)
+            logger.error("AMQP consumer error: %s - retrying in 5s", e)
             time.sleep(5)
 
 

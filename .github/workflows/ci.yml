@@ -21,7 +21,7 @@ jobs:
       # Don't cancel other services if one fails
       fail-fast: false
       matrix:
-        service: [listing-service, reservation-service, strike-service, notification-service]
+        service: [listing-service, reservation-service, strike-service, notification-service, collection-monitoring-service]
 
     steps:
       - uses: actions/checkout@v4
@@ -45,27 +45,3 @@ jobs:
         working-directory: esdG7T7/${{ matrix.service }}
         run: |
           python -m pytest -v
-
-  bridge:
-    name: OutSystems Bridge
-    # Ensures the Node-based bridge used by OutSystems remains installable and loadable.
-    # This does NOT start the bridge or connect to RabbitMQ/Telegram; it only verifies
-    # the code and dependencies are healthy in CI.
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: esdG7T7/notification-service/bridge
-    steps:
-      - uses: actions/checkout@v4
-      - name: Use Node.js 22
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22.x'
-      - name: Install bridge dependencies
-        # Use npm install (no lockfile present). If you add package-lock.json, we will switch to `npm ci`.
-        run: npm install --no-audit --no-fund --progress=false
-      - name: Verify bridge entrypoint and deps
-        # Require expected modules so CI fails fast if a dependency or import breaks.
-        run: |
-          test -f index.js
-          node -e "require('express'); require('amqplib'); require('axios'); require('node-telegram-bot-api'); console.log('deps ok')"
