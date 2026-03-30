@@ -38,6 +38,12 @@ services:
         paths:
           - /reservations
         strip_path: false
+        plugins:
+          - name: rate-limiting
+            config:
+              minute: 10
+              policy: local
+              limit_by: ip
 
   - name: strike-service
     url: http://strike-service:8000
@@ -62,6 +68,12 @@ services:
         paths:
           - /reserve
         strip_path: false
+        plugins:
+          - name: rate-limiting
+            config:
+              minute: 10
+              policy: local
+              limit_by: ip
 
   - name: collection-service
     url: http://collection-service:5000
