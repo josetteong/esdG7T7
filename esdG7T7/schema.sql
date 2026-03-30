@@ -41,13 +41,9 @@ $$ LANGUAGE plpgsql;
 CREATE TABLE vendors (
     vendor_id                       BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     vendor_name                     VARCHAR(255) NOT NULL,
-    business_registration_number    VARCHAR(100),
-    contact_person                  VARCHAR(255),
     contact_email                   VARCHAR(255),
-    contact_phone                   VARCHAR(50),
-    address                         TEXT,
+    password_hash                   VARCHAR(255),
     vendor_status                   vendor_status NOT NULL DEFAULT 'ACTIVE',
-
     created_at                      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at                      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -85,9 +81,8 @@ CREATE TRIGGER trg_listings_updated_at
 CREATE TABLE claimants (
     claimant_id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     claimant_name       VARCHAR(255) NOT NULL,
-    claimant_type       claimant_type NOT NULL,
     email               VARCHAR(255),
-    phone_number        VARCHAR(50),
+    password_hash       VARCHAR(255),
 
     strike_count        INT NOT NULL DEFAULT 0 CHECK (strike_count >= 0),
     suspended_until     TIMESTAMPTZ,

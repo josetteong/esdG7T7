@@ -12,41 +12,59 @@ paths:
 
   /registrations/claimant:
     post:
-      summary: Register a claimant
+      summary: Create claimant account and return Telegram onboarding link
       parameters:
         - in: body
           name: body
+          required: true
           schema:
             type: object
-            required: [user_id]
+            required: [claimant_name, password]
             properties:
-              user_id:
-                type: integer
-                example: 1
+              claimant_name:
+                type: string
+                example: "Jane Doe"
+              email:
+                type: string
+                example: "jane@example.com"
+              password:
+                type: string
+                example: "securepassword123"
       responses:
         201:
-          description: Telegram onboarding link returned
+          description: Claimant created and Telegram link returned
         400:
-          description: user_id missing
+          description: Missing required fields
+        502:
+          description: Claimant service error
 
   /registrations/vendor:
     post:
-      summary: Register a vendor
+      summary: Create vendor account and return Telegram onboarding link
       parameters:
         - in: body
           name: body
+          required: true
           schema:
             type: object
-            required: [user_id]
+            required: [vendor_name, password]
             properties:
-              user_id:
-                type: integer
-                example: 1
+              vendor_name:
+                type: string
+                example: "Fresh Farms"
+              contact_email:
+                type: string
+                example: "vendor@example.com"
+              password:
+                type: string
+                example: "securepassword123"
       responses:
         201:
-          description: Telegram onboarding link returned
+          description: Vendor created and Telegram link returned
         400:
-          description: user_id missing
+          description: Missing required fields
+        502:
+          description: Vendor service error
 
   /registrations/{user_id}/{recipient_type}:
     get:

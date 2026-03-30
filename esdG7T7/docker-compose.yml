@@ -73,6 +73,11 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - TELEGRAM_BOT_USERNAME=SFRB_Notif_BOt
+      - CLAIMANT_SERVICE_URL=http://claimant-service:5000
+      - VENDOR_SERVICE_URL=http://vendor-service:5000
+    depends_on:
+      - claimant-service
+      - vendor-service
     networks:
       - esd-net
 
@@ -145,6 +150,28 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
+    networks:
+      - esd-net
+
+  claimant-service:
+    build:
+      context: .
+      dockerfile: ./claimant-service/Dockerfile
+    ports:
+      - "8012:5000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+    networks:
+      - esd-net
+
+  vendor-service:
+    build:
+      context: .
+      dockerfile: ./vendor-service/Dockerfile
+    ports:
+      - "8011:5000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
     networks:
       - esd-net
 

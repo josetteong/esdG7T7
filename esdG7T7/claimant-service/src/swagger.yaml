@@ -1,0 +1,79 @@
+swagger: "2.0"
+info:
+  title: Claimant Service
+  version: "1.0"
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        200:
+          description: OK
+
+  /claimants:
+    post:
+      summary: Register a new claimant
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            required: [claimant_name, password]
+            properties:
+              claimant_name:
+                type: string
+                example: "Jane Doe"
+              email:
+                type: string
+                example: "jane@example.com"
+              password:
+                type: string
+                example: "securepassword123"
+      responses:
+        201:
+          description: Claimant registered successfully
+          schema:
+            $ref: "#/definitions/ClaimantResponse"
+        400:
+          description: Missing required fields
+
+  /claimants/{claimant_id}:
+    get:
+      summary: Get claimant by ID
+      parameters:
+        - in: path
+          name: claimant_id
+          type: integer
+          required: true
+          example: 1
+      responses:
+        200:
+          description: Claimant found
+          schema:
+            $ref: "#/definitions/ClaimantResponse"
+        404:
+          description: Claimant not found
+
+definitions:
+  ClaimantResponse:
+    type: object
+    properties:
+      claimant_id:
+        type: integer
+        example: 1
+      claimant_name:
+        type: string
+        example: "Jane Doe"
+      email:
+        type: string
+        example: "jane@example.com"
+      eligibility_status:
+        type: string
+        example: "ACTIVE"
+      strike_count:
+        type: integer
+        example: 0
+      created_at:
+        type: string
+        example: "2026-03-30T10:00:00+00:00"

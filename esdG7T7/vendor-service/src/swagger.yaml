@@ -1,0 +1,76 @@
+swagger: "2.0"
+info:
+  title: Vendor Service
+  version: "1.0"
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        200:
+          description: OK
+
+  /vendors:
+    post:
+      summary: Create a new vendor
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            required: [vendor_name, password]
+            properties:
+              vendor_name:
+                type: string
+                example: "Fresh Farms"
+              contact_email:
+                type: string
+                example: "vendor@example.com"
+              password:
+                type: string
+                example: "securepassword123"
+      responses:
+        201:
+          description: Vendor created successfully
+          schema:
+            $ref: "#/definitions/VendorResponse"
+        400:
+          description: Missing required fields
+
+  /vendors/{vendor_id}:
+    get:
+      summary: Get vendor by ID
+      parameters:
+        - in: path
+          name: vendor_id
+          type: integer
+          required: true
+          example: 1
+      responses:
+        200:
+          description: Vendor found
+          schema:
+            $ref: "#/definitions/VendorResponse"
+        404:
+          description: Vendor not found
+
+definitions:
+  VendorResponse:
+    type: object
+    properties:
+      vendor_id:
+        type: integer
+        example: 1
+      vendor_name:
+        type: string
+        example: "Fresh Farms"
+      contact_email:
+        type: string
+        example: "vendor@example.com"
+      vendor_status:
+        type: string
+        example: "ACTIVE"
+      created_at:
+        type: string
+        example: "2026-03-30T10:00:00+00:00"

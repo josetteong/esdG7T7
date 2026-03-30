@@ -48,3 +48,27 @@ services:
         paths:
           - /collect
         strip_path: false
+
+  - name: vendor-service
+    url: http://vendor-service:5000
+    routes:
+      - name: vendor-route
+        paths:
+          - /vendors
+        strip_path: false
+
+  - name: claimant-service
+    url: http://claimant-service:5000
+    routes:
+      - name: claimant-route
+        paths:
+          - /claimants
+        strip_path: false
+
+  - name: notification-service
+    url: http://notification-service:8000
+    routes:
+      - name: notification-route
+        paths:
+          - /notifications
+        strip_path: false

@@ -14,11 +14,8 @@ class Vendor(Base):
 
     vendor_id = Column(BigInteger, primary_key=True)
     vendor_name = Column(String(255), nullable=False)
-    business_registration_number = Column(String(100))
-    contact_person = Column(String(255))
     contact_email = Column(String(255))
-    contact_phone = Column(String(50))
-    address = Column(Text)
+    password_hash = Column(String(255))
     vendor_status = Column(String, nullable=False, default="ACTIVE")
     created_at = Column(DateTime(timezone=True), default=_now)
     updated_at = Column(DateTime(timezone=True), default=_now)
@@ -46,9 +43,8 @@ class Claimant(Base):
 
     claimant_id = Column(BigInteger, primary_key=True)
     claimant_name = Column(String(255), nullable=False)
-    claimant_type = Column(String, nullable=False)
     email = Column(String(255))
-    phone_number = Column(String(50))
+    password_hash = Column(String(255))
     strike_count = Column(Integer, nullable=False, default=0)
     suspended_until = Column(DateTime(timezone=True))
     eligibility_status = Column(String, nullable=False, default="ACTIVE")
