@@ -12,15 +12,22 @@ export default function PostListingForm() {
   const [form, setForm] = useState({ desc: '', qty: '', cat: '', expiry: '', collectWindowMins: 60, notes: '' })
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }))
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!form.desc || !form.qty || !form.cat || !form.expiry) {
       toast('Missing fields', 'Please fill in all required fields.', 'warning')
       return
     }
-    postListing({ ...form, qty: parseInt(form.qty), collectWindowMins: parseInt(form.collectWindowMins) }, user.email, user.name)
-    toast('Listing posted', `"${form.desc}" is live. Collect within ${form.collectWindowMins} min.`)
-    setForm({ desc: '', qty: '', cat: '', expiry: '', collectWindowMins: 60, notes: '' })
+    try {
+      await postListing(
+        { ...form, qty: parseInt(form.qty, 10), collectWindowMins: parseInt(form.collectWindowMins, 10) },
+        user.id
+      )
+      toast('Listing posted', `"${form.desc}" is live. Collect within ${form.collectWindowMins} min.`)
+      setForm({ desc: '', qty: '', cat: '', expiry: '', collectWindowMins: 60, notes: '' })
+    } catch (err) {
+      toast('Unable to post listing', err.message || 'Please try again.', 'error')
+    }
   }
 
   const labelStyle = { display: 'block', fontSize: 10, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6B6560', marginBottom: 5 }

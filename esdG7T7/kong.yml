@@ -83,6 +83,18 @@ services:
           - /collect
         strip_path: false
 
+  - name: handle-cancellation-service
+    url: http://handle-cancellation-service:5000
+    routes:
+      - name: handle-claimant-cancel-route
+        paths:
+          - /claimant/cancel
+        strip_path: false
+      - name: handle-vendor-cancel-route
+        paths:
+          - /vendor/cancel
+        strip_path: false
+
   - name: vendor-service
     url: http://vendor-service:5000
     routes:

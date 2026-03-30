@@ -26,16 +26,24 @@ export default function BrowseListings({ claimantState }) {
   }
 
   const attemptClaim = (listing) => {
-    if (claimantState.suspended) { setFeeTarget(listing); return }
-    doClaim(listing, false)
+    if (claimantState.suspended) {
+      toast('Account suspended', 'Your account is currently not eligible to reserve.', 'error')
+      setFeeTarget(null)
+      return
+    }
+    doClaim(listing)
   }
 
-  const doClaim = (listing, bypassed) => {
+  const doClaim = async (listing) => {
     const qty = getQty(listing)
     if (!qty || qty < 1 || qty > listing.qtyRemaining) { toast('Invalid quantity', 'Please enter a valid quantity.', 'warning'); return }
-    claimListing(listing, qty, user.email, bypassed)
-    toast('Reserved!', `You reserved ${qty} × "${listing.desc}". Collect within ${listing.collectWindowMins} min.`)
-    setQtys((p) => ({ ...p, [listing.id]: 1 }))
+    try {
+      await claimListing(listing, qty, user.id)
+      toast('Reserved!', `You reserved ${qty} × "${listing.desc}". Collect within ${listing.collectWindowMins} min.`)
+      setQtys((p) => ({ ...p, [listing.id]: 1 }))
+    } catch (err) {
+      toast('Reservation failed', err.message || 'Please try again.', 'error')
+    }
   }
 
   return (
@@ -93,10 +101,7 @@ export default function BrowseListings({ claimantState }) {
                   />
                   <span style={{ fontSize: 10, color: '#aaa' }}>max {l.qtyRemaining}</span>
                   <div style={{ marginLeft: 'auto' }}>
-                    {claimantState.suspended
-                      ? <button className="btn btn-amber btn-sm" onClick={() => attemptClaim(l)}>Reserve (pay $5)</button>
-                      : <button className="btn btn-teal btn-sm" onClick={() => attemptClaim(l)}>Claim</button>
-                    }
+                    <button className="btn btn-teal btn-sm" onClick={() => attemptClaim(l)}>Claim</button>
                   </div>
                 </div>
               </div>
@@ -113,16 +118,16 @@ export default function BrowseListings({ claimantState }) {
         footer={
           <>
             <button className="btn" onClick={() => setFeeTarget(null)}>Cancel</button>
-            <button className="btn btn-amber" onClick={() => { setFeeTarget(null); doClaim(feeTarget, true) }}>Pay $5 and reserve</button>
+            <button className="btn btn-amber" onClick={() => setFeeTarget(null)}>Understood</button>
           </>
         }
       >
         {feeTarget && (
           <div>
             <div className="banner banner-danger" style={{ marginBottom: 12 }}>
-              <strong>Your account is suspended</strong> until {fmtTime(claimantState.suspendedUntil)} due to 5 late cancellations.
+              <strong>Your account is suspended.</strong> Please contact support to restore eligibility.
             </div>
-            <p style={{ fontSize: 13, color: '#6B6560', lineHeight: 1.6 }}>You may bypass your suspension for this reservation by paying a one-time fee.</p>
+            <p style={{ fontSize: 13, color: '#6B6560', lineHeight: 1.6 }}>Suspension bypass payment is not yet connected in backend services.</p>
             <div style={{ background: '#F5F3EF', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: 10, padding: 16, marginTop: 12 }}>
               <p style={{ fontSize: 13, fontWeight: 500, marginBottom: 4 }}>Bypass fee</p>
               <p style={{ fontSize: 22, fontWeight: 500, color: '#185FA5' }}>$5.00 SGD</p>

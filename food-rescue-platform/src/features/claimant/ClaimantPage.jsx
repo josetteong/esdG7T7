@@ -1,14 +1,13 @@
 import { useApp } from '../../context/AppContext'
 import { useAuth } from '../../context/AuthContext'
-import { fmtTime } from '../shared/utils'
 import BrowseListings from './BrowseListings'
 import MyReservations from './MyReservations'
 
 export default function ClaimantPage() {
   const { reservations, getClaimantState } = useApp()
   const { user } = useAuth()
-  const cs = getClaimantState(user.email)
-  const myRes = reservations.filter((r) => r.claimantEmail === user.email)
+  const cs = getClaimantState()
+  const myRes = reservations.filter((r) => String(r.claimantId) === String(user.id))
   const activeCount = myRes.filter((r) => r.status === 'Reserved').length
 
   const today = new Date().toLocaleDateString('en-SG', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
@@ -27,8 +26,7 @@ export default function ClaimantPage() {
       {/* Suspension banner */}
       {cs.suspended && (
         <div className="banner banner-danger" style={{ marginBottom: 20 }}>
-          <strong>Account suspended</strong> until {fmtTime(cs.suspendedUntil)}. You have 5 late cancellations.
-          You may still reserve food by paying a <strong>$5 bypass fee</strong> per reservation.
+          <strong>Account suspended.</strong> Your account currently cannot reserve food.
         </div>
       )}
 
