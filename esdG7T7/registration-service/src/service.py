@@ -47,10 +47,11 @@ def verify_token(token: str, chat_id: int) -> bool:
     with get_db() as session:
         reg = session.query(TelegramRegistration).filter(
             TelegramRegistration.token == token,
-            TelegramRegistration.is_registered == False,
         ).first()
         if not reg:
             return False
+        if reg.is_registered:
+            return reg.chat_id == chat_id  # already registered by same user = success
         reg.chat_id = chat_id
         reg.is_registered = True
         reg.registered_at = datetime.now(timezone.utc)

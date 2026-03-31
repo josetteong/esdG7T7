@@ -25,8 +25,20 @@ def _send(chat_id: int, text: str):
         logger.error("Failed to send Telegram message: %s", e)
 
 
+def _get_initial_offset() -> int:
+    """Skip all pending messages that arrived before the bot started."""
+    try:
+        resp = requests.get(f"{TELEGRAM_API}/getUpdates", params={"offset": -1, "timeout": 0}, timeout=10)
+        results = resp.json().get("result", [])
+        if results:
+            return results[-1]["update_id"] + 1
+    except Exception:
+        pass
+    return 0
+
+
 def _poll():
-    offset = 0
+    offset = _get_initial_offset()
     while True:
         try:
             resp = requests.get(
