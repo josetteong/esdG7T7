@@ -6,6 +6,7 @@ plugins:
       origins:
         - "http://localhost:5173"
         - "http://localhost:3000"
+        - "https://esdg7t7.vercel.app"
       methods:
         - GET
         - POST
@@ -118,3 +119,4 @@ services:
         paths:
           - /notifications
         strip_path: false
+

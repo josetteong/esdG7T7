@@ -1,31 +1,27 @@
 -- ============================================================
---  SFRP Seed Data
---  Run this in the Supabase SQL Editor
+--  SFRP Seed Data (aligned with schema.sql)
 -- ============================================================
 
--- ── Vendors ──────────────────────────────────────────────────
+-- Vendors
+INSERT INTO vendors (vendor_name, contact_email, vendor_status) VALUES
+  ('FoodMart SG',           'alice@foodmart.sg',        'ACTIVE'),
+  ('Bread & Butter Bakery', 'bob@bnb.sg',               'ACTIVE'),
+  ('Green Grocer',          'carol@greengrocer.sg',     'ACTIVE');
 
-INSERT INTO vendors (vendor_name, contact_person, contact_email, contact_phone, vendor_status) VALUES
-  ('FoodMart SG',          'Alice Tan',  'alice@foodmart.sg',        '91234567', 'ACTIVE'),
-  ('Bread & Butter Bakery','Bob Lim',    'bob@bnb.sg',               '98765432', 'ACTIVE'),
-  ('Green Grocer',         'Carol Ng',   'carol@greengrocer.sg',     '87654321', 'ACTIVE');
+-- Claimants
+INSERT INTO claimants (claimant_name, email, strike_count, eligibility_status) VALUES
+  ('Helping Hands NGO',    'ops@helpinghands.sg',       0, 'ACTIVE'),
+  ('Food from the Heart',  'info@foodfromtheheart.sg',  0, 'ACTIVE'),
+  ('John Doe',             'john@gmail.com',            0, 'ACTIVE'),
+  ('Jane Smith',           'jane@gmail.com',            0, 'ACTIVE');
 
--- ── Claimants ────────────────────────────────────────────────
-
-INSERT INTO claimants (claimant_name, claimant_type, email, phone_number, strike_count, eligibility_status) VALUES
-  ('Helping Hands NGO',    'NGO',        'ops@helpinghands.sg',      '63331234', 0, 'ACTIVE'),
-  ('Food from the Heart',  'NGO',        'info@foodfromtheheart.sg', '63339876', 0, 'ACTIVE'),
-  ('John Doe',             'INDIVIDUAL', 'john@gmail.com',           '91112222', 0, 'ACTIVE'),
-  ('Jane Smith',           'INDIVIDUAL', 'jane@gmail.com',           '92223333', 0, 'ACTIVE');
-
--- ── Listings ─────────────────────────────────────────────────
--- Uses vendor_ids generated above — adjust if your IDs differ
-
-INSERT INTO listings (vendor_id, food_name, description, total_quantity, expiry_time, listing_status)
+-- Listings (remaining_qty = total_quantity)
+INSERT INTO listings (vendor_id, food_name, description, total_quantity, remaining_qty, expiry_time, listing_status)
 SELECT
   v.vendor_id,
   l.food_name,
   l.description,
+  l.total_quantity,
   l.total_quantity,
   NOW() + l.expires_in,
   'AVAILABLE'
