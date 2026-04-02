@@ -5,8 +5,14 @@ async function apiFetch(path, options = {}) {
     headers: { 'Content-Type': 'application/json' },
     ...options,
   })
-  const data = await res.json()
-  if (!res.ok) throw { status: res.status, message: data.error || 'Something went wrong.' }
+  const text = await res.text()
+  const data = text ? JSON.parse(text) : null
+  if (!res.ok) {
+    throw {
+      status: res.status,
+      message: data?.detail || data?.error || data?.message || 'Something went wrong.',
+    }
+  }
   return data
 }
 
@@ -33,3 +39,42 @@ export const loginVendor = (email, password) =>
     method: 'POST',
     body: JSON.stringify({ email, password }),
   })
+
+export const getListings = () => apiFetch('/listings')
+
+export const createListing = (payload) =>
+  apiFetch('/listings', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+
+export const getReservations = () => apiFetch('/reservations')
+
+export const reserveComposite = (payload) =>
+  apiFetch('/reserve', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+
+export const collectReservationApi = (payload) =>
+  apiFetch('/collect', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+
+export const cancelClaimantReservation = (payload) =>
+  apiFetch('/claimant/cancel', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+
+export const cancelVendorListing = (payload) =>
+  apiFetch('/vendor/cancel', {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  })
+
+export const getStrikeCount = (claimantId) => apiFetch(`/strikes/${claimantId}`)
+
+export const getClaimantEligibility = (claimantId) =>
+  apiFetch(`/strikes/${claimantId}/eligibility`)

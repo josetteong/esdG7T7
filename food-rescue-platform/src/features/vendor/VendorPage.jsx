@@ -6,7 +6,7 @@ import VendorListings from './VendorListings'
 export default function VendorPage() {
   const { listings } = useApp()
   const { user } = useAuth()
-  const mine = listings.filter((l) => l.vendorEmail === user.email)
+  const mine = listings.filter((l) => String(l.vendorId) === String(user.id))
   const active = mine.filter((l) => l.status === 'Available').length
   const collected = mine.filter((l) => l.status === 'Collected').length
   const cancelled = mine.filter((l) => ['Cancelled', 'Expired'].includes(l.status)).length

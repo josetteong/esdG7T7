@@ -11,29 +11,36 @@ export default function MyReservations({ claimantState }) {
   const toast = useToast()
   const [cancelTarget, setCancelTarget] = useState(null)
 
-  const myRes = reservations.filter((r) => r.claimantEmail === user.email)
+  const myRes = reservations.filter((r) => String(r.claimantId) === String(user.id))
   const minsLeft = (r) => Math.max(0, r.collectWindowMins - minutesAgo(r.reservedAt))
   const graceMinsLeft = (r) => Math.max(0, 10 - minutesAgo(r.reservedAt))
   const windowPct = (r) => Math.round((minsLeft(r) / r.collectWindowMins) * 100)
   const barColor = (r) => { const p = windowPct(r); return p > 50 ? '#1D9E75' : p > 20 ? '#EF9F27' : '#C8473A' }
 
-  const handleCollect = (res) => {
+  const handleCollect = async (res) => {
     if (minutesAgo(res.reservedAt) >= res.collectWindowMins) {
       toast('Window expired', 'The collection window has passed. This reservation has been released.', 'error')
-      expireReservation(res); return
+      await expireReservation(res)
+      return
     }
-    collectReservation(res, user.email)
-    toast('Collected!', `${res.qty} × "${res.desc}" confirmed. Thank you!`)
+    try {
+      await collectReservation(res, user.id)
+      toast('Collected!', `${res.qty} × "${res.desc}" confirmed. Thank you!`)
+    } catch (err) {
+      toast('Collection failed', err.message || 'Please try again.', 'error')
+    }
   }
 
-  const confirmCancel = () => {
+  const confirmCancel = async () => {
     const isLate = minutesAgo(cancelTarget.reservedAt) >= 10
-    cancelReservation(cancelTarget, user.email, isLate)
-    const newStrikes = claimantState.strikes + (isLate ? 1 : 0)
-    if (isLate && newStrikes >= 5) toast('Account suspended', '5 strikes reached. Suspended for 90 days.', 'error')
-    else if (isLate) toast('Strike added', `Late cancellation. Strikes: ${newStrikes} / 5.`, 'warning')
-    else toast('Cancelled', 'Cancelled within grace period — no penalty.')
-    setCancelTarget(null)
+    try {
+      await cancelReservation(cancelTarget, user.id)
+      if (isLate) toast('Cancellation submitted', 'Late cancellation may add a strike.', 'warning')
+      else toast('Cancelled', 'Cancelled within grace period — no penalty.')
+      setCancelTarget(null)
+    } catch (err) {
+      toast('Cancellation failed', err.message || 'Please try again.', 'error')
+    }
   }
 
   const isLateCancel = cancelTarget ? minutesAgo(cancelTarget.reservedAt) >= 10 : false

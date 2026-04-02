@@ -14,16 +14,20 @@ export default function VendorListings() {
   const [filter, setFilter] = useState('all')
   const [cancelTarget, setCancelTarget] = useState(null)
 
-  const myListings = listings.filter((l) => l.vendorEmail === user.email)
+  const myListings = listings.filter((l) => String(l.vendorId) === String(user.id))
   const visible = filter === 'all' ? myListings : myListings.filter((l) => l.status === filter)
   const affectedCount = (id) => reservations.filter((r) => r.listingId === id && r.status === 'Reserved').length
 
-  const confirmCancel = () => {
-    cancelListing(cancelTarget.id)
-    toast('Listing cancelled', `"${cancelTarget.desc}" cancelled.`, 'warning')
-    if (affectedCount(cancelTarget.id) > 0)
-      toast('Reservations cancelled', `${affectedCount(cancelTarget.id)} claimant(s) notified.`, 'warning')
-    setCancelTarget(null)
+  const confirmCancel = async () => {
+    try {
+      await cancelListing(cancelTarget.id, user.id)
+      toast('Listing cancelled', `"${cancelTarget.desc}" cancelled.`, 'warning')
+      if (affectedCount(cancelTarget.id) > 0)
+        toast('Reservations cancelled', `${affectedCount(cancelTarget.id)} claimant(s) notified.`, 'warning')
+      setCancelTarget(null)
+    } catch (err) {
+      toast('Unable to cancel listing', err.message || 'Please try again.', 'error')
+    }
   }
 
   return (
