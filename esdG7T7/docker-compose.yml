@@ -5,28 +5,6 @@ networks:
     driver: bridge
 
 services:
-  postgres:
-    image: postgres:15-alpine
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: sfrp
-    # Uncomment to access Postgres from host on 5432
-    # ports:
-    #   - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
-      - ./seed.sql:/docker-entrypoint-initdb.d/02_seed.sql:ro
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d sfrp"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
-    networks:
-      - esd-net
-
   listing-service:
     build:
       context: .
@@ -35,9 +13,6 @@ services:
       - "8001:8000"
     environment:
       - DATABASE_URL=${DATABASE_URL}
-    depends_on:
-      postgres:
-        condition: service_healthy
     networks:
       - esd-net
 
@@ -52,8 +27,6 @@ services:
       - RABBITMQ_URL=amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672
       - OUTSYSTEMS_NOTIFY_URL=https://personal-42atob5v.outsystemscloud.com/Notification/rest/NotificationAPI/notify
     depends_on:
-      postgres:
-        condition: service_healthy
       rabbitmq:
         condition: service_healthy
     networks:
@@ -69,8 +42,6 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - RABBITMQ_URL=amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672
     depends_on:
-      postgres:
-        condition: service_healthy
       rabbitmq:
         condition: service_healthy
     networks:
@@ -87,8 +58,6 @@ services:
       - RABBITMQ_URL=amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672
       - OUTSYSTEMS_NOTIFY_URL=https://personal-42atob5v.outsystemscloud.com/Notification/rest/Notification/Notify
     depends_on:
-      postgres:
-        condition: service_healthy
       rabbitmq:
         condition: service_healthy
     networks:
@@ -107,8 +76,6 @@ services:
       - CLAIMANT_SERVICE_URL=http://claimant-service:5000
       - VENDOR_SERVICE_URL=http://vendor-service:5000
     depends_on:
-      postgres:
-        condition: service_healthy
       claimant-service:
         condition: service_started
       vendor-service:
@@ -196,9 +163,6 @@ services:
       - "8012:5000"
     environment:
       - DATABASE_URL=${DATABASE_URL}
-    depends_on:
-      postgres:
-        condition: service_healthy
     networks:
       - esd-net
 
@@ -210,9 +174,6 @@ services:
       - "8011:5000"
     environment:
       - DATABASE_URL=${DATABASE_URL}
-    depends_on:
-      postgres:
-        condition: service_healthy
     networks:
       - esd-net
 
