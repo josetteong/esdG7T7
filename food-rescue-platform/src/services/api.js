@@ -74,6 +74,9 @@ export const cancelVendorListing = (payload) =>
     body: JSON.stringify(payload),
   })
 
+export const reconnectTelegram = (userId, role) =>
+  apiFetch(`/registrations/${userId}/${role.toUpperCase()}/reconnect`, { method: 'POST' })
+
 export const getStrikeCount = (claimantId) => apiFetch(`/strikes/${claimantId}`)
 
 export const getClaimantEligibility = (claimantId) =>

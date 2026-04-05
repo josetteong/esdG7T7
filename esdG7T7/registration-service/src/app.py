@@ -4,7 +4,7 @@ import yaml
 import requests
 from flask import Flask, jsonify, request
 from flasgger import Swagger
-from .service import create_registration, get_registration
+from .service import create_registration, get_registration, reset_registration
 from .bot import start_bot
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -73,6 +73,13 @@ def register_vendor():
     vendor_id = str(resp.json()["vendor_id"])
     result = create_registration(vendor_id, recipient_type="VENDOR")
     return jsonify({**resp.json(), "telegram": result}), 201
+
+
+@app.route("/registrations/<user_id>/<recipient_type>/reconnect", methods=["POST"])
+def reconnect_registration(user_id, recipient_type):
+    """Reset a Telegram registration so the user can get a fresh link."""
+    result = reset_registration(user_id, recipient_type.upper())
+    return jsonify(result), 200
 
 
 @app.route("/registrations/<user_id>/<recipient_type>", methods=["GET"])

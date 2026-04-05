@@ -1,5 +1,5 @@
 import { createContext, useContext, useState } from 'react'
-import { registerClaimant, registerVendor, loginClaimant, loginVendor } from '../services/api'
+import { registerClaimant, registerVendor, loginClaimant, loginVendor, reconnectTelegram as apiReconnect } from '../services/api'
 
 const AuthContext = createContext(null)
 
@@ -62,11 +62,23 @@ export function AuthProvider({ children }) {
     setUser((prev) => ({ ...prev, needsTelegramPrompt: false }))
   }
 
+  // ── Telegram reconnect ─────────────────────────────────────────────────────
+  const triggerTelegramConnect = async () => {
+    if (!user) return { ok: false }
+    try {
+      const data = await apiReconnect(user.id, user.role)
+      setUser((prev) => ({ ...prev, telegramLink: data.telegram_link, needsTelegramPrompt: true }))
+      return { ok: true }
+    } catch (err) {
+      return { ok: false, error: err.message }
+    }
+  }
+
   // ── Logout ─────────────────────────────────────────────────────────────────
   const logout = () => setUser(null)
 
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout, saveTelegramHandle, dismissTelegramPrompt }}>
+    <AuthContext.Provider value={{ user, login, signup, logout, saveTelegramHandle, dismissTelegramPrompt, triggerTelegramConnect }}>
       {children}
     </AuthContext.Provider>
   )

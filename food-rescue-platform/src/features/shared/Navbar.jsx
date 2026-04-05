@@ -2,14 +2,14 @@ import { useAuth } from '../../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 
 export default function Navbar() {
-  const { user, logout } = useAuth()
+  const { user, logout, triggerTelegramConnect } = useAuth()
   const navigate = useNavigate()
 
   if (!user) return null
 
   const initials = user.name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()
   const avatarBg = user.role === 'vendor' ? '#C8473A' : '#185FA5'
-  const isClaimant = user.role === 'claimant'
+
 
   return (
     <nav style={{
@@ -48,23 +48,23 @@ export default function Navbar() {
       {/* Right side */}
       <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 12, zIndex: 1 }}>
 
-        {/* Telegram connected badge — claimants only */}
-        {isClaimant && user.telegramHandle && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(34,158,217,0.15)', border: '1px solid rgba(34,158,217,0.3)', padding: '3px 10px', borderRadius: 20 }}>
+        {/* Telegram connected — click to reconnect */}
+        {user.telegramHandle && (
+          <button onClick={triggerTelegramConnect} title="Click to reconnect Telegram" style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(34,158,217,0.15)', border: '1px solid rgba(34,158,217,0.3)', padding: '3px 10px', borderRadius: 20, cursor: 'pointer', fontFamily: 'inherit' }}>
             <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
               <circle cx="5.5" cy="5.5" r="4.5" fill="rgba(34,158,217,0.3)" />
               <path d="M9 2.5L2 5.5l2.5 1 1 2.5 1.5-2 2.5 1.5L9 2.5z" fill="#82CFED" />
             </svg>
             <span style={{ fontSize: 10, color: '#82CFED', fontWeight: 500 }}>@{user.telegramHandle}</span>
-          </div>
+          </button>
         )}
 
-        {/* Telegram not connected nudge — claimants only */}
-        {isClaimant && !user.telegramHandle && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', padding: '3px 10px', borderRadius: 20 }}>
+        {/* Telegram not connected — click to connect */}
+        {!user.telegramHandle && (
+          <button onClick={triggerTelegramConnect} title="Connect Telegram" style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', padding: '3px 10px', borderRadius: 20, cursor: 'pointer', fontFamily: 'inherit' }}>
             <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#EF9F27' }} />
-            <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)' }}>Telegram not connected</span>
-          </div>
+            <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)' }}>Connect Telegram</span>
+          </button>
         )}
 
         <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)' }}>{user.name}</span>

@@ -58,6 +58,22 @@ def verify_token(token: str, chat_id: int) -> bool:
         return True
 
 
+def reset_registration(user_id: str, recipient_type: str) -> dict:
+    """Force-reset a registration so the user gets a fresh Telegram link."""
+    with get_db() as session:
+        reg = session.get(TelegramRegistration, (user_id, recipient_type))
+        token = _make_token()
+        if reg:
+            reg.token = token
+            reg.is_registered = False
+            reg.chat_id = None
+        else:
+            reg = TelegramRegistration(user_id=user_id, token=token, recipient_type=recipient_type, is_registered=False)
+            session.add(reg)
+        session.flush()
+        return _to_dict(reg)
+
+
 def get_registration(user_id: str, recipient_type: str) -> dict | None:
     """Fetch registration info — used by OutSystems to get chatId before notifying."""
     with get_db() as session:

@@ -39,7 +39,7 @@ def _on_listing_expired(channel, method, properties, body):
     for reservation in cancelled:
         channel.basic_publish(
             exchange=EXCHANGE,
-            routing_key="listing.expired",
+            routing_key="claimant.listing.expired",
             body=json.dumps({
                 "recipient_id": reservation["claimant_id"],
                 "recipient_type": "CLAIMANT",
@@ -57,7 +57,7 @@ def _on_listing_expired(channel, method, properties, body):
     if vendor_id:
         channel.basic_publish(
             exchange=EXCHANGE,
-            routing_key="listing.expired",
+            routing_key="vendor.listing.expired",
             body=json.dumps({
                 "recipient_id": vendor_id,
                 "recipient_type": "VENDOR",

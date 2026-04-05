@@ -85,3 +85,38 @@ paths:
           description: Registration info including chatId
         404:
           description: Not found
+
+  /registrations/{user_id}/{recipient_type}/reconnect:
+    post:
+      summary: Reset Telegram registration and return a fresh one-time link
+      description: >
+        Clears the existing Telegram link (sets is_registered=false, chat_id=null)
+        and generates a new one-time token. Use this when a user wants to reconnect
+        or change their Telegram account.
+      parameters:
+        - in: path
+          name: user_id
+          type: string
+          required: true
+          example: "1"
+        - in: path
+          name: recipient_type
+          type: string
+          required: true
+          enum: [CLAIMANT, VENDOR]
+      responses:
+        200:
+          description: New Telegram link returned
+          schema:
+            type: object
+            properties:
+              user_id:
+                type: string
+              recipient_type:
+                type: string
+              is_registered:
+                type: boolean
+                example: false
+              telegram_link:
+                type: string
+                example: "https://t.me/SFRB_Notif_BOt?start=ABC12345"
