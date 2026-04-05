@@ -1,4 +1,4 @@
-from shared.db import get_db
+﻿from shared.db import get_db
 from shared.orm_models import Claimant, Strike
 from .schemas import EligibilityResponse, StrikeResponse
 
@@ -20,7 +20,7 @@ def apply_strike(claimant_id: str):
             return
         session.add(Strike(claimant_id=int(claimant_id), reason="Missed pickup"))
         claimant.strike_count += 1
-        if claimant.strike_count >= 3:
+        if claimant.strike_count >= 5:
             claimant.eligibility_status = "SUSPENDED"
 
 
@@ -29,3 +29,4 @@ def get_strikes(claimant_id: str) -> StrikeResponse:
         claimant = session.get(Claimant, int(claimant_id))
         count = claimant.strike_count if claimant else 0
         return StrikeResponse(claimant_id=claimant_id, count=count)
+
