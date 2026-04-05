@@ -12,6 +12,7 @@ def _to_dict(listing: ListingModel) -> dict:
         "total_quantity": listing.total_quantity,
         "remaining_qty": listing.remaining_qty,
         "expiry_time": listing.expiry_time,
+        "collect_window_mins": listing.collect_window_mins,
         "status": listing.listing_status,
         "created_at": listing.created_at,
     }
@@ -25,6 +26,7 @@ def create_listing(request: CreateListingRequest) -> dict:
             total_quantity=request.total_quantity,
             remaining_qty=request.total_quantity,
             expiry_time=request.expiry_time,
+            collect_window_mins=request.collect_window_mins,
             listing_status="AVAILABLE",
         )
         session.add(listing)

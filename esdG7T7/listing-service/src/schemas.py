@@ -7,6 +7,7 @@ class CreateListingRequest(BaseModel):
     food_name: str
     total_quantity: int
     expiry_time: datetime
+    collect_window_mins: int = 60
 
 class ListingResponse(BaseModel):
     id: str
@@ -15,6 +16,7 @@ class ListingResponse(BaseModel):
     total_quantity: int
     remaining_qty: int
     expiry_time: datetime
+    collect_window_mins: int
     status: ListingStatus
     created_at: datetime
 

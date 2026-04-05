@@ -1,11 +1,9 @@
 import yaml
 from flask import Flask, jsonify, request
-from flask_cors import CORS
 from flasgger import Swagger
 from .service import create_claimant, get_claimant, login_claimant
 
 app = Flask(__name__)
-CORS(app)
 Swagger(app, template=yaml.safe_load(open("/app/src/swagger.yaml")))
 
 

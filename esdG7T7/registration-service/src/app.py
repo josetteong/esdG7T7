@@ -3,7 +3,6 @@ import os
 import yaml
 import requests
 from flask import Flask, jsonify, request
-from flask_cors import CORS
 from flasgger import Swagger
 from .service import create_registration, get_registration
 from .bot import start_bot
@@ -11,7 +10,6 @@ from .bot import start_bot
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
 app = Flask(__name__)
-CORS(app)
 Swagger(app, template=yaml.safe_load(open("/app/src/swagger.yaml")))
 
 CLAIMANT_SERVICE_URL = os.getenv("CLAIMANT_SERVICE_URL", "http://claimant-service:5000")

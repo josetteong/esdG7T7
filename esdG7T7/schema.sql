@@ -64,6 +64,7 @@ CREATE TABLE listings (
     total_quantity  INT NOT NULL CHECK (total_quantity > 0),
     remaining_qty   INT NOT NULL,
     expiry_time     TIMESTAMPTZ NOT NULL,
+    collect_window_mins INT NOT NULL DEFAULT 60,
     listing_status  listing_status NOT NULL DEFAULT 'AVAILABLE',
 
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
