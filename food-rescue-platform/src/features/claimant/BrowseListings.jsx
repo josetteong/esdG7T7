@@ -36,6 +36,10 @@ export default function BrowseListings({ claimantState }) {
 
   const doClaim = async (listing) => {
     const qty = getQty(listing)
+    if (new Date(listing.expiry) <= new Date()) {
+      toast('Listing expired', 'This listing has already expired and cannot be reserved.', 'error')
+      return
+    }
     if (!qty || qty < 1 || qty > listing.qtyRemaining) { toast('Invalid quantity', 'Please enter a valid quantity.', 'warning'); return }
     try {
       await claimListing(listing, qty, user.id)

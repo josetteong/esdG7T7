@@ -48,7 +48,7 @@ const toUiListing = (l) => ({
   expiry: l.expiry_time,
   status: listingStatusToUi[l.status] ?? 'Available',
   notes: '',
-  collectWindowMins: 60,
+  collectWindowMins: l.collect_window_mins ?? 60,
   createdAt: l.created_at,
   vendorName: `Vendor #${l.vendor_id}`,
 })
@@ -146,6 +146,7 @@ export function AppProvider({ children }) {
         food_name: fields.desc,
         total_quantity: Number(fields.qty),
         expiry_time: new Date(fields.expiry).toISOString(),
+        collect_window_mins: Number(fields.collectWindowMins),
       })
       await refreshData()
     },

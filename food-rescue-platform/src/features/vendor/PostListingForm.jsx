@@ -18,6 +18,10 @@ export default function PostListingForm() {
       toast('Missing fields', 'Please fill in all required fields.', 'warning')
       return
     }
+    if (new Date(form.expiry) <= new Date()) {
+      toast('Invalid expiry time', 'Expiry time must be in the future.', 'warning')
+      return
+    }
     try {
       await postListing(
         { ...form, qty: parseInt(form.qty, 10), collectWindowMins: parseInt(form.collectWindowMins, 10) },

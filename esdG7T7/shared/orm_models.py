@@ -31,6 +31,7 @@ class Listing(Base):
     total_quantity = Column(Integer, nullable=False)
     remaining_qty = Column(Integer, nullable=False)
     expiry_time = Column(DateTime(timezone=True), nullable=False)
+    collect_window_mins = Column(Integer, nullable=False, default=60)
     listing_status = Column(String, nullable=False, default="AVAILABLE")
     created_at = Column(DateTime(timezone=True), default=_now)
     updated_at = Column(DateTime(timezone=True), default=_now)
