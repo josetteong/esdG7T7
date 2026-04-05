@@ -134,8 +134,8 @@ services:
       test: ["CMD", "rabbitmq-diagnostics", "ping"]
       interval: 10s
       timeout: 5s
-      retries: 5
-      start_period: 20s
+      retries: 10
+      start_period: 60s
     networks:
       - esd-net
 
@@ -231,3 +231,4 @@ services:
 volumes:
   rabbitmq_data:
   postgres_data:
+
