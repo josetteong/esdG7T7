@@ -43,3 +43,13 @@ Sync commands:
 Notes:
 - Only `VITE_*` keys are propagated to the frontend file.
 - Edit values in `.env` and re-run the sync when they change.
+
+## Supabase (External Postgres)
+
+When `.env` points to Supabase (DB_HOST ends with `supabase.com`), the stack does not run a local Postgres. To apply schema and seed to Supabase for local dev:
+
+- Windows (PowerShell): `./esdG7T7/scripts/db-apply-supabase.ps1`
+- macOS/Linux: `bash esdG7T7/scripts/db-apply-supabase.sh`
+
+These read credentials from `esdG7T7/.env` and run `psql` in a temporary `postgres:15-alpine` container with `sslmode=require`.
+
