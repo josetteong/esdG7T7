@@ -29,3 +29,17 @@ Run tests: pytest
 ## API Documentation
 
 Each service provides OpenAPI docs at /docs when running.
+## Environment Files
+
+- Central file: `.env` in this folder (loaded by Docker Compose).
+- Example template: `.env.example` (copy/adjust for new setups).
+- Frontend local env (`food-rescue-platform/.env.local`) is generated from the central `.env` via a small sync script.
+
+Sync commands:
+
+- From the frontend dir: `npm run env:sync`
+- Or directly: `node ./scripts/env-sync.mjs`
+
+Notes:
+- Only `VITE_*` keys are propagated to the frontend file.
+- Edit values in `.env` and re-run the sync when they change.

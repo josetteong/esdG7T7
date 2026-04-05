@@ -1,9 +1,13 @@
-{
+﻿{
   "name": "food-rescue-platform",
   "private": true,
   "version": "0.1.0",
   "type": "module",
   "scripts": {
+    "env:sync": "node ../scripts/env-sync.mjs",
+    "predev": "npm run env:sync",
+    "prebuild": "npm run env:sync",
+    "prepreview": "npm run env:sync",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
