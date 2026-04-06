@@ -32,6 +32,17 @@ services:
     networks:
       - esd-net
 
+  striking-svc:
+    build:
+      context: .
+      dockerfile: ./striking-svc/Dockerfile
+    ports:
+      - "8013:8000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+    networks:
+      - esd-net
+
   strike-service:
     build:
       context: .
@@ -39,11 +50,16 @@ services:
     ports:
       - "8003:8000"
     environment:
-      - DATABASE_URL=${DATABASE_URL}
       - RABBITMQ_URL=amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672
+      - CLAIMANT_SERVICE_URL=http://claimant-service:5000
+      - STRIKING_SVC_URL=http://striking-svc:8000
     depends_on:
       rabbitmq:
         condition: service_healthy
+      claimant-service:
+        condition: service_started
+      striking-svc:
+        condition: service_started
     networks:
       - esd-net
 

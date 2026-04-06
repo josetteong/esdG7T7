@@ -4,7 +4,7 @@ from datetime import datetime
 
 class CreateNotificationRequest(BaseModel):
     user_id: str
-    recipient_type: str = "CLAIMANT"       # VENDOR | CLAIMANT
+    recipient_type: str = "CLAIMANT"
     notification_type: str = "RESERVATION_CREATED"
     message: str
 

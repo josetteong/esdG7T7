@@ -1,13 +1,3 @@
-"""
-AMQP consumer for the strike-service.
-
-Subscribes to claimant.missed_collection events.
-For each event:
-  1. Applies a strike to the claimant.
-  2. If the claimant is now suspended, publishes claimant.penalty_assigned
-     so the notification-service can send a suspension notice.
-"""
-
 import json
 import logging
 import os
@@ -38,7 +28,7 @@ def _on_missed_collection(channel, method, properties, body):
     apply_strike(claimant_id)
 
     eligibility = get_eligibility(claimant_id)
-    if not eligibility.eligible:
+    if not eligibility["eligible"]:
         channel.basic_publish(
             exchange=EXCHANGE,
             routing_key="claimant.penalty_assigned",

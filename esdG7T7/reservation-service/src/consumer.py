@@ -1,12 +1,3 @@
-"""
-AMQP subscriber for the reservation-service.
-
-Listens for "listing.expired.internal" events published by the expiry-monitor-service.
-For each expired listing:
-  1. Cancels all active (RESERVED) reservations in the DB.
-  2. Calls OutSystems Notify API per affected claimant - OutSystems sends Telegram directly (no local bridge).
-"""
-
 import json
 import logging
 import os
@@ -31,11 +22,9 @@ def _on_listing_expired(channel, method, properties, body):
     food_name  = data.get("food_name", "a listing")
     logger.info("Received listing.expired.internal for listing %s (%s)", listing_id, food_name)
 
-    # 1. Cancel all active reservations in DB
     cancelled = expire_reservations_for_listing(listing_id)
     logger.info("Cancelled %d reservation(s) for listing %s", len(cancelled), listing_id)
 
-    # 2. Publish listing.expired per claimant - notification-service triggers OutSystems (no bridge)
     for reservation in cancelled:
         channel.basic_publish(
             exchange=EXCHANGE,
@@ -53,7 +42,6 @@ def _on_listing_expired(channel, method, properties, body):
         )
         logger.info("Published listing.expired for claimant %s", reservation["claimant_id"])
 
-    # 3. Publish listing.expired to vendor
     if vendor_id:
         channel.basic_publish(
             exchange=EXCHANGE,
@@ -83,7 +71,6 @@ def _connect_and_consume():
 
             channel.exchange_declare(exchange=EXCHANGE, exchange_type="topic", durable=True)
 
-            # Named durable queue - persists across restarts, visible in management UI
             channel.queue_declare(queue="listing.expired.internal", durable=True)
             channel.queue_bind(exchange=EXCHANGE, queue="listing.expired.internal", routing_key=ROUTING_KEY)
 
@@ -102,6 +89,5 @@ def _connect_and_consume():
 
 
 def start_consumer():
-    """Start the AMQP subscriber in a daemon thread (called on FastAPI startup)."""
     thread = threading.Thread(target=_connect_and_consume, daemon=True)
     thread.start()

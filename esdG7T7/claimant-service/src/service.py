@@ -34,6 +34,21 @@ def get_claimant(claimant_id: int) -> dict | None:
         return _to_dict(claimant) if claimant else None
 
 
+SUSPENSION_THRESHOLD = 5
+
+
+def apply_strike(claimant_id: int) -> dict | None:
+    with get_db() as session:
+        claimant = session.get(Claimant, claimant_id)
+        if not claimant:
+            return None
+        claimant.strike_count += 1
+        if claimant.strike_count >= SUSPENSION_THRESHOLD:
+            claimant.eligibility_status = "SUSPENDED"
+        session.flush()
+        return _to_dict(claimant)
+
+
 def login_claimant(email: str, password: str) -> dict | None:
     with get_db() as session:
         claimant = session.query(Claimant).filter(

@@ -23,10 +23,7 @@ EXCHANGE = "food_rescue"
 EXPIRABLE_STATUSES = {"AVAILABLE", "FULLY_RESERVED"}
 
 
-# ─── RABBITMQ PUBLISHER ──────────────────────────────────────────────────────
-
 def _publish(routing_key: str, payload: dict):
-    """Open a short-lived connection, publish one message, then close."""
     try:
         params = pika.URLParameters(RABBITMQ_URL)
         connection = pika.BlockingConnection(params)
@@ -36,15 +33,13 @@ def _publish(routing_key: str, payload: dict):
             exchange=EXCHANGE,
             routing_key=routing_key,
             body=json.dumps(payload),
-            properties=pika.BasicProperties(delivery_mode=2),  # persistent
+            properties=pika.BasicProperties(delivery_mode=2),
         )
         connection.close()
         logger.info("Published to [%s]: %s", routing_key, payload)
     except Exception as e:
         logger.error("Failed to publish to RabbitMQ: %s", e)
 
-
-# ─── CORE LOGIC ──────────────────────────────────────────────────────────────
 
 def check_and_expire_listings():
     logger.info("Running expiry check...")
@@ -82,8 +77,6 @@ def check_and_expire_listings():
                 logger.info("Expired listing %s (%s)", listing_id, listing.get("food_name"))
                 expired_ids.append(listing_id)
 
-                # ── Publish internal event so reservation-service subscribes,
-                #    cancels reservations, and notifies affected claimants via Telegram
                 _publish("listing.expired.internal", {
                     "listing_id": listing_id,
                     "vendor_id": listing.get("vendor_id"),
@@ -99,8 +92,6 @@ def check_and_expire_listings():
     return {"expired": expired_ids, "failed": failed_ids}
 
 
-# ─── ROUTES ──────────────────────────────────────────────────────────────────
-
 @app.route("/health")
 def health():
     return jsonify({"status": "ok"})
@@ -111,8 +102,6 @@ def trigger():
     result = check_and_expire_listings()
     return jsonify(result)
 
-
-# ─── STARTUP ─────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
     scheduler = BackgroundScheduler()

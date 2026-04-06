@@ -23,7 +23,6 @@ def health():
 
 @app.route("/registrations/claimant", methods=["POST"])
 def register_claimant():
-    """Create a claimant account then return a Telegram onboarding link."""
     body = request.get_json()
     if not body:
         return jsonify({"error": "request body required"}), 400
@@ -50,7 +49,6 @@ def register_claimant():
 
 @app.route("/registrations/vendor", methods=["POST"])
 def register_vendor():
-    """Create a vendor account then return a Telegram onboarding link."""
     body = request.get_json()
     if not body:
         return jsonify({"error": "request body required"}), 400
@@ -77,14 +75,12 @@ def register_vendor():
 
 @app.route("/registrations/<user_id>/<recipient_type>/reconnect", methods=["POST"])
 def reconnect_registration(user_id, recipient_type):
-    """Reset a Telegram registration so the user can get a fresh link."""
     result = reset_registration(user_id, recipient_type.upper())
     return jsonify(result), 200
 
 
 @app.route("/registrations/<user_id>/<recipient_type>", methods=["GET"])
 def get_reg(user_id, recipient_type):
-    """Get registration info including chatId — called by OutSystems before notifying."""
     result = get_registration(user_id, recipient_type.upper())
     if not result:
         return jsonify({"error": "not found"}), 404

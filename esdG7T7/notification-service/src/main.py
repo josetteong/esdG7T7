@@ -6,7 +6,7 @@ from .consumer import start_consumer
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    start_consumer()   # starts AMQP subscriber thread on startup
+    start_consumer()
     yield
 
 

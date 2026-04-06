@@ -1,13 +1,3 @@
-"""
-AMQP subscriber for the notification-service.
-
-Subscribes to notification routing keys on the food_rescue exchange.
-For each message:
-  1. Logs the notification to DB (via create_notification)
-  2. create_notification calls OutSystems Notify API
-  3. OutSystems fetches chatId from Supabase → Telegram API → customer
-"""
-
 import json
 import logging
 import os
@@ -25,7 +15,6 @@ logger = logging.getLogger(__name__)
 RABBITMQ_URL = os.getenv("RABBITMQ_URL", "amqp://admin:admin123@rabbitmq:5672")
 EXCHANGE = "food_rescue"
 
-# All routing keys this service handles
 ROUTING_KEYS = [
     "claimant.listing.expired",
     "vendor.listing.expired",
@@ -35,6 +24,7 @@ ROUTING_KEYS = [
     "claimant.reservation.completed",
     "vendor.reservation.completed",
     "claimant.missed_collection",
+    "vendor.missed_collection",
     "claimant.penalty_assigned",
 ]
 
@@ -69,7 +59,6 @@ def _connect_and_consume():
 
             channel.exchange_declare(exchange=EXCHANGE, exchange_type="topic", durable=True)
 
-            # One durable queue per routing key
             for key in ROUTING_KEYS:
                 channel.queue_declare(queue=key, durable=True)
                 channel.queue_bind(exchange=EXCHANGE, queue=key, routing_key=key)

@@ -14,7 +14,6 @@ def health():
 
 @app.route("/vendors", methods=["POST"])
 def create_vendor_endpoint():
-    """Create a new vendor."""
     body = request.get_json()
     if not body:
         return jsonify({"error": "request body required"}), 400
@@ -34,7 +33,6 @@ def create_vendor_endpoint():
 
 @app.route("/vendors/<int:vendor_id>", methods=["GET"])
 def get_vendor_endpoint(vendor_id):
-    """Get vendor by ID — check if vendor has been created."""
     vendor = get_vendor(vendor_id)
     if not vendor:
         return jsonify({"error": "vendor not found"}), 404
@@ -43,7 +41,6 @@ def get_vendor_endpoint(vendor_id):
 
 @app.route("/vendors/login", methods=["POST"])
 def login_vendor_endpoint():
-    """Sign in as a vendor."""
     body = request.get_json()
     if not body:
         return jsonify({"error": "request body required"}), 400

@@ -14,16 +14,13 @@ def reserve(data: dict):
     quantity = data["reservation_qty"]
     pickup_time = datetime.fromisoformat(data["pickup_time"])
 
-    # Check strike eligibility, raise if NOT eligible (ie. suspended)
     if not get_eligibility(claimant_id):
         raise HTTPException(status_code=403, detail="Customer suspended")
 
-    # Atomic reserve with Listing Service
     listing = reserve_listing(listing_id, quantity, pickup_time, claimant_id)
     if not listing:
         raise HTTPException(status_code=400, detail="Reservation failed (invalid or expired)")
 
-    # Create reservation record
     reservation = create_reservation({
     "claimant_id": claimant_id,
     "listing_id": listing_id,
@@ -32,10 +29,8 @@ def reserve(data: dict):
     if not reservation:
         raise HTTPException(status_code=500, detail="Reservation DB failed")
 
-    # Re-retrieve updated listings
     updated_listings = get_listings()
 
-    # Publish notification via AMQP
     publish_notification(
         user_id=claimant_id,
         recipient_type="CLAIMANT",

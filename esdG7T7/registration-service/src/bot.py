@@ -1,8 +1,3 @@
-"""
-Telegram bot — runs in a background thread.
-Handles /start TOKEN to link a user's Telegram chatId to their account.
-"""
-
 import logging
 import os
 import threading
@@ -26,7 +21,6 @@ def _send(chat_id: int, text: str):
 
 
 def _get_initial_offset() -> int:
-    """Skip all pending messages that arrived before the bot started."""
     try:
         resp = requests.get(f"{TELEGRAM_API}/getUpdates", params={"offset": -1, "timeout": 0}, timeout=10)
         results = resp.json().get("result", [])
@@ -67,7 +61,6 @@ def _poll():
 
 
 def start_bot():
-    """Start the Telegram bot polling in a daemon thread."""
     thread = threading.Thread(target=_poll, daemon=True)
     thread.start()
     logger.info("Telegram bot polling started")

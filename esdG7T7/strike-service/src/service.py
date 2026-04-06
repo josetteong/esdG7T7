@@ -1,32 +1,34 @@
-﻿from shared.db import get_db
-from shared.orm_models import Claimant, Strike
-from .schemas import EligibilityResponse, StrikeResponse
+import os
+import requests
+
+CLAIMANT_SERVICE_URL = os.getenv("CLAIMANT_SERVICE_URL", "http://claimant-service:5000")
+STRIKING_SVC_URL     = os.getenv("STRIKING_SVC_URL",     "http://striking-svc:8000")
+SUSPENSION_THRESHOLD = 5
 
 
-def get_eligibility(claimant_id: str) -> EligibilityResponse:
-    with get_db() as session:
-        claimant = session.get(Claimant, int(claimant_id))
-        if not claimant:
-            return EligibilityResponse(eligible=True, reason=None)
-        eligible = claimant.eligibility_status == "ACTIVE"
-        reason = None if eligible else f"Status: {claimant.eligibility_status} ({claimant.strike_count} strikes)"
-        return EligibilityResponse(eligible=eligible, reason=reason)
+def apply_strike(claimant_id: str) -> None:
+    requests.post(
+        f"{STRIKING_SVC_URL}/striking/apply",
+        json={"claimant_id": int(claimant_id)},
+        timeout=10,
+    ).raise_for_status()
+
+    requests.patch(
+        f"{CLAIMANT_SERVICE_URL}/claimants/{claimant_id}/apply-strike",
+        timeout=10,
+    ).raise_for_status()
 
 
-def apply_strike(claimant_id: str):
-    with get_db() as session:
-        claimant = session.get(Claimant, int(claimant_id))
-        if not claimant:
-            return
-        session.add(Strike(claimant_id=int(claimant_id), reason="Missed pickup"))
-        claimant.strike_count += 1
-        if claimant.strike_count >= 5:
-            claimant.eligibility_status = "SUSPENDED"
+def get_strikes(claimant_id: str) -> dict:
+    resp = requests.get(f"{STRIKING_SVC_URL}/striking/{claimant_id}/count", timeout=10)
+    resp.raise_for_status()
+    return resp.json()
 
 
-def get_strikes(claimant_id: str) -> StrikeResponse:
-    with get_db() as session:
-        claimant = session.get(Claimant, int(claimant_id))
-        count = claimant.strike_count if claimant else 0
-        return StrikeResponse(claimant_id=claimant_id, count=count)
-
+def get_eligibility(claimant_id: str) -> dict:
+    resp = requests.get(f"{STRIKING_SVC_URL}/striking/{claimant_id}/count", timeout=10)
+    resp.raise_for_status()
+    count = resp.json().get("count", 0)
+    eligible = count < SUSPENSION_THRESHOLD
+    reason = None if eligible else f"{count} strikes — account suspended"
+    return {"eligible": eligible, "reason": reason}

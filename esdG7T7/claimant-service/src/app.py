@@ -1,7 +1,7 @@
 import yaml
 from flask import Flask, jsonify, request
 from flasgger import Swagger
-from .service import create_claimant, get_claimant, login_claimant
+from .service import create_claimant, get_claimant, login_claimant, apply_strike
 
 app = Flask(__name__)
 Swagger(app, template=yaml.safe_load(open("/app/src/swagger.yaml")))
@@ -14,7 +14,6 @@ def health():
 
 @app.route("/claimants", methods=["POST"])
 def create_claimant_endpoint():
-    """Register a new claimant."""
     body = request.get_json()
     if not body:
         return jsonify({"error": "request body required"}), 400
@@ -34,7 +33,6 @@ def create_claimant_endpoint():
 
 @app.route("/claimants/<int:claimant_id>", methods=["GET"])
 def get_claimant_endpoint(claimant_id):
-    """Get claimant by ID."""
     claimant = get_claimant(claimant_id)
     if not claimant:
         return jsonify({"error": "claimant not found"}), 404
@@ -43,7 +41,6 @@ def get_claimant_endpoint(claimant_id):
 
 @app.route("/claimants/login", methods=["POST"])
 def login_claimant_endpoint():
-    """Sign in as a claimant."""
     body = request.get_json()
     if not body:
         return jsonify({"error": "request body required"}), 400
@@ -59,6 +56,14 @@ def login_claimant_endpoint():
         return jsonify({"error": "incorrect email or password"}), 401
 
     return jsonify(claimant), 200
+
+
+@app.route("/claimants/<int:claimant_id>/apply-strike", methods=["PATCH"])
+def apply_strike_endpoint(claimant_id):
+    result = apply_strike(claimant_id)
+    if not result:
+        return jsonify({"error": "claimant not found"}), 404
+    return jsonify(result), 200
 
 
 if __name__ == "__main__":

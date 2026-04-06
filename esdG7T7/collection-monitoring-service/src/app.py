@@ -1,13 +1,3 @@
-"""
-Collection Monitoring Service — cron-based missed pickup detector.
-
-Flow (runs on schedule):
-  1. GET  /reservations         — find RESERVED reservations past pickup_time
-  2. PATCH /reservations/{id}/missed-pickup — mark as MISSED_PICKUP
-  3. PATCH /listings/{id}/release           — restore qty back to listing
-  4. Publish claimant.missed_collection     — strike-service and notification-service subscribe
-"""
-
 import json
 import logging
 import os
@@ -84,13 +74,11 @@ def check_missed_collections():
         qty            = reservation["reservation_qty"]
 
         try:
-            # 1. Mark reservation as MISSED_PICKUP
             requests.patch(
                 f"{RESERVATION_SERVICE_URL}/reservations/{reservation_id}/missed-pickup",
                 timeout=10,
             ).raise_for_status()
 
-            # 2. Fetch listing for food_name
             listing_resp = requests.get(
                 f"{LISTING_SERVICE_URL}/listings/{listing_id}", timeout=10
             )
@@ -98,14 +86,14 @@ def check_missed_collections():
             listing   = listing_resp.json()
             food_name = listing.get("food_name", "the listing")
 
-            # 3. Release qty back to listing
             requests.patch(
                 f"{LISTING_SERVICE_URL}/listings/{listing_id}/release",
                 json={"qty": qty},
                 timeout=10,
             ).raise_for_status()
 
-            # 4. Publish missed_collection event
+            vendor_id = listing.get("vendor_id")
+
             _publish("claimant.missed_collection", {
                 "recipient_id":      claimant_id,
                 "recipient_type":    "CLAIMANT",
@@ -121,6 +109,22 @@ def check_missed_collections():
                     f"A strike has been recorded against your account."
                 ),
             })
+
+            if vendor_id:
+                _publish("vendor.missed_collection", {
+                    "recipient_id":      vendor_id,
+                    "recipient_type":    "VENDOR",
+                    "notification_type": "MISSED_PICKUP",
+                    "listing_id":        listing_id,
+                    "reservation_id":    reservation_id,
+                    "food_name":         food_name,
+                    "missed_at":         now.isoformat(),
+                    "message": (
+                        f"A claimant missed their collection for '{food_name}' "
+                        f"(Listing ID: {listing_id}, Reservation ID: {reservation_id}). "
+                        f"The quantity has been returned to the listing."
+                    ),
+                })
 
 
             logger.info(

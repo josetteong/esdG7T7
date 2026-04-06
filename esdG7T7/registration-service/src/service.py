@@ -26,15 +26,14 @@ def _to_dict(r: TelegramRegistration) -> dict:
 
 
 def create_registration(user_id: str, recipient_type: str) -> dict:
-    """Create or refresh a registration entry and return a Telegram link."""
     with get_db() as session:
         reg = session.get(TelegramRegistration, (user_id, recipient_type))
         if reg and reg.is_registered:
-            return _to_dict(reg)   # already registered, return existing
+            return _to_dict(reg)
 
         token = _make_token()
         if reg:
-            reg.token = token      # refresh token if not yet registered
+            reg.token = token
         else:
             reg = TelegramRegistration(user_id=user_id, token=token, recipient_type=recipient_type, is_registered=False)
             session.add(reg)
@@ -43,7 +42,6 @@ def create_registration(user_id: str, recipient_type: str) -> dict:
 
 
 def verify_token(token: str, chat_id: int) -> bool:
-    """Called by the Telegram bot when user sends /start TOKEN. Stores chatId."""
     with get_db() as session:
         reg = session.query(TelegramRegistration).filter(
             TelegramRegistration.token == token,
@@ -51,7 +49,7 @@ def verify_token(token: str, chat_id: int) -> bool:
         if not reg:
             return False
         if reg.is_registered:
-            return reg.chat_id == chat_id  # already registered by same user = success
+            return reg.chat_id == chat_id
         reg.chat_id = chat_id
         reg.is_registered = True
         reg.registered_at = datetime.now(timezone.utc)
@@ -59,7 +57,6 @@ def verify_token(token: str, chat_id: int) -> bool:
 
 
 def reset_registration(user_id: str, recipient_type: str) -> dict:
-    """Force-reset a registration so the user gets a fresh Telegram link."""
     with get_db() as session:
         reg = session.get(TelegramRegistration, (user_id, recipient_type))
         token = _make_token()
@@ -75,7 +72,6 @@ def reset_registration(user_id: str, recipient_type: str) -> dict:
 
 
 def get_registration(user_id: str, recipient_type: str) -> dict | None:
-    """Fetch registration info — used by OutSystems to get chatId before notifying."""
     with get_db() as session:
         reg = session.get(TelegramRegistration, (user_id, recipient_type))
         return _to_dict(reg) if reg else None

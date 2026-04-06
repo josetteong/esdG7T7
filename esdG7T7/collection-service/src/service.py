@@ -1,14 +1,3 @@
-"""
-Collection Service — orchestration logic.
-
-Flow:
-  1. GET  reservation from reservation-service
-  2. Validate claimant_id matches, status is RESERVED, within pickup window
-  3. PATCH reservation → COMPLETED  (reservation-service)
-  4. GET  listing from listing-service to get vendor_id
-  5. Publish AMQP completion notifications to claimant + vendor
-"""
-
 import json
 import logging
 import os
@@ -36,18 +25,12 @@ def _publish(channel, routing_key: str, payload: dict):
 
 
 def handle_collection(reservation_id: str, claimant_id: str) -> tuple[dict, int]:
-    # ------------------------------------------------------------------
-    # 1. Fetch reservation
-    # ------------------------------------------------------------------
     resp = requests.get(f"{RESERVATION_SERVICE_URL}/reservations/{reservation_id}", timeout=10)
     if resp.status_code == 404:
         return {"error": "Reservation not found"}, 404
     resp.raise_for_status()
     reservation = resp.json()
 
-    # ------------------------------------------------------------------
-    # 2. Validate
-    # ------------------------------------------------------------------
     if str(reservation["claimant_id"]) != str(claimant_id):
         return {"error": "Claimant mismatch"}, 403
 
@@ -61,9 +44,6 @@ def handle_collection(reservation_id: str, claimant_id: str) -> tuple[dict, int]
 
     listing_id = reservation["listing_id"]
 
-    # ------------------------------------------------------------------
-    # 3. Mark reservation as COMPLETED
-    # ------------------------------------------------------------------
     complete_resp = requests.patch(
         f"{RESERVATION_SERVICE_URL}/reservations/{reservation_id}/complete",
         params={"claimant_id": claimant_id},
@@ -73,9 +53,6 @@ def handle_collection(reservation_id: str, claimant_id: str) -> tuple[dict, int]
         return {"error": "Could not complete reservation"}, 400
     complete_resp.raise_for_status()
 
-    # ------------------------------------------------------------------
-    # 4. Fetch listing to get vendor_id and food_name
-    # ------------------------------------------------------------------
     listing_resp = requests.get(f"{LISTING_SERVICE_URL}/listings/{listing_id}", timeout=10)
     listing_resp.raise_for_status()
     listing = listing_resp.json()
@@ -83,9 +60,6 @@ def handle_collection(reservation_id: str, claimant_id: str) -> tuple[dict, int]
     vendor_id = listing.get("vendor_id")
     food_name = listing.get("food_name", "the listing")
 
-    # ------------------------------------------------------------------
-    # 5. Publish notifications to claimant + vendor
-    # ------------------------------------------------------------------
     params = pika.URLParameters(RABBITMQ_URL)
     connection = pika.BlockingConnection(params)
     channel = connection.channel()

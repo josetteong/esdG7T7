@@ -72,7 +72,6 @@ def missed_pickup(reservation_id: str) -> dict | None:
 
 
 def cancel_reservations_by_listing(listing_id: str) -> list[dict]:
-    """Cancel all RESERVED reservations for a listing (called on vendor cancellation)."""
     with get_db() as session:
         rows = session.query(ReservationModel).filter(
             ReservationModel.listing_id == int(listing_id),
@@ -86,8 +85,6 @@ def cancel_reservations_by_listing(listing_id: str) -> list[dict]:
 
 
 def expire_reservations_for_listing(listing_id: str) -> list[dict]:
-    """Called by the AMQP consumer when a listing.expired.internal event arrives.
-    Marks all RESERVED reservations as EXPIRED and returns them (consumer will notify claimants)."""
     with get_db() as session:
         rows = session.query(ReservationModel).filter(
             ReservationModel.listing_id == int(listing_id),
