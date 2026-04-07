@@ -5,7 +5,7 @@ import { useToast } from '../shared/Toast'
 import Modal from '../shared/Modal'
 import { fmtTime, statusBadgeClass } from '../shared/utils'
 
-const STATUS_OPTIONS = ['all', 'Available', 'Reserved', 'Collected', 'Cancelled', 'Expired']
+const STATUS_OPTIONS = ['all', 'Available', 'Reserved', ' ed', 'Cancelled', 'Expired']
 
 export default function VendorListings() {
   const { listings, reservations, cancelListing } = useApp()
