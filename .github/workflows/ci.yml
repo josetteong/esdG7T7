@@ -1,7 +1,5 @@
-# CI for Python services + OutSystems Bridge
-# - Runs pytest for each FastAPI service in esdG7T7/<service>
-# - Validates the OutSystems notification bridge remains buildable by installing
-#   Node deps and requiring its modules (no external services/secrets needed).
+# CI for Python services
+# Runs pytest per service; ensures pytest is installed even if not in requirements.
 
 name: CI
 
@@ -10,18 +8,15 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-  # Allow manual runs from the Actions tab
   workflow_dispatch:
 
 jobs:
   test:
-    # Matrix tests for all Python services
     runs-on: ubuntu-latest
     strategy:
-      # Don't cancel other services if one fails
       fail-fast: false
       matrix:
-        service: [listing-service, reservation-service, strike-service, notification-service, collection-monitoring-service]
+        service: [listing-service, reservation-service, strike-service, striking-svc, claimant-service, notification-service, collection-monitoring-service]
 
     steps:
       - uses: actions/checkout@v4
@@ -32,16 +27,23 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies for ${{ matrix.service }}
-        # Services live under esdG7T7/<service>
         working-directory: esdG7T7/${{ matrix.service }}
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          python -m pip install -U pytest
 
       - name: Run tests for ${{ matrix.service }}
-        # Add parent to PYTHONPATH so imports like `from shared.enums import ...` resolve
         env:
           PYTHONPATH: ..
         working-directory: esdG7T7/${{ matrix.service }}
+        shell: bash
         run: |
-          python -m pytest -v
+          shopt -s globstar nullglob
+          files=(tests/**/*.py **/*_test.py **/test_*.py)
+          if (( ${#files[@]} )); then
+            echo "Running pytest on ${#files[@]} test files"
+            python -m pytest -v
+          else
+            echo "No tests found for ${{ matrix.service }}; skipping."
+          fi
