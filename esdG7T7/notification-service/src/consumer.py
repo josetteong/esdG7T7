@@ -26,6 +26,8 @@ ROUTING_KEYS = [
     "claimant.missed_collection",
     "vendor.missed_collection",
     "claimant.penalty_assigned",
+    "vendor.listing_expired_no_relist",
+    "vendor.listing.cancelled",
 ]
 
 

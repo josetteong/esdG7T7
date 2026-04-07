@@ -9,12 +9,12 @@ export default function PostListingForm() {
   const { user } = useAuth()
   const toast = useToast()
 
-  const [form, setForm] = useState({ desc: '', qty: '', cat: '', expiry: '', collectWindowMins: 60, notes: '' })
+  const [form, setForm] = useState({ desc: '', qty: '', cat: '', expiry: '', collectWindowMins: '', notes: '' })
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }))
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!form.desc || !form.qty || !form.cat || !form.expiry) {
+    if (!form.desc || !form.qty || !form.cat || !form.expiry || !form.collectWindowMins) {
       toast('Missing fields', 'Please fill in all required fields.', 'warning')
       return
     }
@@ -24,7 +24,7 @@ export default function PostListingForm() {
         user.id
       )
       toast('Listing posted', `"${form.desc}" is live. Collect within ${form.collectWindowMins} min.`)
-      setForm({ desc: '', qty: '', cat: '', expiry: '', collectWindowMins: 60, notes: '' })
+      setForm({ desc: '', qty: '', cat: '', expiry: '', collectWindowMins: '', notes: '' })
     } catch (err) {
       toast('Unable to post listing', err.message || 'Please try again.', 'error')
     }
@@ -68,6 +68,7 @@ export default function PostListingForm() {
         <div style={{ marginBottom: 14 }}>
           <label style={labelStyle}>Collection window</label>
           <select className="form-input" value={form.collectWindowMins} onChange={set('collectWindowMins')} style={inputStyle}>
+            <option value="">Select…</option>
             <option value={30}>30 min</option>
             <option value={45}>45 min</option>
             <option value={60}>60 min (max)</option>

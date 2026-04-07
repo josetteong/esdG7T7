@@ -25,6 +25,22 @@ def _publish(channel, routing_key: str, payload: dict):
     )
     logger.info("Published %s → %s", routing_key, payload)
 
+#############################################################################################################################
+'''
+
+handle_cancellation
+
+1. Checks if Reservation Exists 
+2. Ensure all details match up 
+3. Checks if its late cancellation
+4. If it is, call strike composite to intiate applying of a strike and check if still eligible 
+5. Gets the listing and checks if it is still valid
+6. If valid, it would call listing for it to be released and and messages will be sent that it relists 
+7. If late cancel, a strike will be applied and message will be published to alert claimants and vendors wil be notified of the relisting
+
+
+'''
+##################################################################################################################################
 
 def handle_cancellation_claimant(reservation_id: int, claimant_id: int) -> tuple[dict, int]:
     resp = requests.get(f"{RESERVATION_SERVICE_URL}/reservations/{reservation_id}", timeout=10)
@@ -43,10 +59,12 @@ def handle_cancellation_claimant(reservation_id: int, claimant_id: int) -> tuple
     reserved_at = datetime.fromisoformat(reservation["created_at"])
     now         = datetime.now(timezone.utc)
 
+    # Checks if the cancellation passed the 10min grace period 
     late_cancel   = (now - reserved_at) > timedelta(minutes=GRACE_PERIOD_MINUTES)
     strike_count  = None
     suspended     = False
 
+    #if late, apply a strike 
     if late_cancel:
         strike_resp = requests.post(
             f"{STRIKE_SERVICE_URL}/strikes/apply",
@@ -54,14 +72,18 @@ def handle_cancellation_claimant(reservation_id: int, claimant_id: int) -> tuple
             timeout=10,
         )
         strike_resp.raise_for_status()
+        # check the number of strikes 
         count_resp = requests.get(f"{STRIKE_SERVICE_URL}/strikes/{claimant_id}", timeout=10)
         count_resp.raise_for_status()
+
+        #check for eligibility 
         strike_count = count_resp.json().get("count", 0)
         elig_resp = requests.get(f"{STRIKE_SERVICE_URL}/strikes/{claimant_id}/eligibility", timeout=10)
         elig_resp.raise_for_status()
         suspended = not elig_resp.json().get("eligible", True)
         logger.info("Strike applied — claimant %s now has %d strike(s)", claimant_id, strike_count)
 
+    # Cancel the resetvation 
     cancel_resp = requests.patch(
         f"{RESERVATION_SERVICE_URL}/reservations/{reservation_id}/cancel",
         params={"claimant_id": claimant_id},
@@ -69,10 +91,15 @@ def handle_cancellation_claimant(reservation_id: int, claimant_id: int) -> tuple
     )
     cancel_resp.raise_for_status()
 
+    ######################################
+    # For Rollback and releasing qty back 
+    #######################################
+
     listing_resp = requests.get(f"{LISTING_SERVICE_URL}/listings/{listing_id}", timeout=10)
     listing_resp.raise_for_status()
     listing = listing_resp.json()
 
+    # If expored, we should be releasing it back and js cancelling 
     expiry_time   = datetime.fromisoformat(listing["expiry_time"])
     listing_valid = now <= expiry_time
     food_name     = listing.get("food_name", "the listing")
@@ -83,6 +110,7 @@ def handle_cancellation_claimant(reservation_id: int, claimant_id: int) -> tuple
     channel = connection.channel()
     channel.exchange_declare(exchange=EXCHANGE, exchange_type="topic", durable=True)
 
+    # if valid we will release qty back to listing 
     if listing_valid:
         relist_resp = requests.patch(
             f"{LISTING_SERVICE_URL}/listings/{listing_id}/release",
@@ -92,7 +120,8 @@ def handle_cancellation_claimant(reservation_id: int, claimant_id: int) -> tuple
         relist_resp.raise_for_status()
         logger.info("Listing %s returned to AVAILABLE", listing_id)
     else:
-        _publish(channel, "notification.vendor.listing_expired_no_relist", {
+        # if its not, release is skipped and it will js be cancelled 
+        _publish(channel, "vendor.listing_expired_no_relist", {
             "recipient_id":       vendor_id,
             "recipient_type":     "VENDOR",
             "notification_type":  "LISTING_EXPIRED",
@@ -102,18 +131,12 @@ def handle_cancellation_claimant(reservation_id: int, claimant_id: int) -> tuple
             ),
         })
 
-    penalty_note = ""
-    if late_cancel:
-        penalty_note = f" A strike has been applied (total: {strike_count})."
-        if suspended:
-            penalty_note += " Your account has been suspended."
-
     _publish(channel, "claimant.reservation.cancelled", {
         "recipient_id":      claimant_id,
         "recipient_type":    "CLAIMANT",
         "notification_type": "RESERVATION_CANCELLED",
         "message": (
-            f"Your reservation for '{food_name}' (Listing ID: {listing_id}) has been cancelled.{penalty_note}"
+            f"Your reservation for '{food_name}' (Listing ID: {listing_id}) has been cancelled."
         ),
     })
 
@@ -152,7 +175,18 @@ def handle_cancellation_claimant(reservation_id: int, claimant_id: int) -> tuple
         "listing_relisted": listing_valid,
     }, 200
 
+##################################################################################################################################
+"""
+Vendor-initiated Cancellation 
 
+1. Gets Listing, with guard rails 
+2. PATCH the Listing to Cancel
+3. Cancel all reservations with that listing 
+4. Send messages to Claimants that it has been cancelled
+
+
+"""
+##################################################################################################################################
 def handle_cancellation_vendor(listing_id: int, vendor_id: int) -> tuple[dict, int]:
     listing_resp = requests.get(f"{LISTING_SERVICE_URL}/listings/{listing_id}", timeout=10)
     if listing_resp.status_code == 404:
@@ -198,6 +232,18 @@ def handle_cancellation_vendor(listing_id: int, vendor_id: int) -> tuple[dict, i
                 f"because the vendor has cancelled the listing."
             ),
         })
+
+    _publish(channel, "vendor.listing.cancelled", {
+        "recipient_id":      vendor_id,
+        "recipient_type":    "VENDOR",
+        "notification_type": "RESERVATION_CANCELLED",
+        "message": (
+            f"Your listing '{food_name}' (Listing ID: {listing_id}) has been cancelled. "
+            f"{len(cancelled_reservations)} reservation(s) were cancelled and claimants notified."
+            if cancelled_reservations else
+            f"Your listing '{food_name}' (Listing ID: {listing_id}) has been cancelled."
+        ),
+    })
 
     connection.close()
 

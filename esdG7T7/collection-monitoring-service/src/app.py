@@ -39,6 +39,14 @@ def _publish(routing_key: str, payload: dict):
     except Exception as e:
         logger.error("Failed to publish to RabbitMQ: %s", e)
 
+##################################################################################################################################
+"""
+Collection Monitoring 
+
+1. Get All Reservations 
+2. 
+"""
+##################################################################################################################################
 
 def check_missed_collections():
     logger.info("Running missed collection check...")
@@ -65,6 +73,7 @@ def check_missed_collections():
         if pickup_time.tzinfo is None:
             pickup_time = pickup_time.replace(tzinfo=timezone.utc)
 
+        # commited pickuo time has not passed yet
         if now <= pickup_time:
             continue
 
