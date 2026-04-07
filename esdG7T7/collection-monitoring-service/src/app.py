@@ -1,3 +1,11 @@
+##################################################################################################################################
+"""
+Purpose: Scheduled daemon that detects missed pickups and triggers consequences.
+
+APScheduler runs `check_missed_collections` every 1 minute
+"""
+##################################################################################################################################
+
 import json
 import logging
 import os
@@ -43,8 +51,12 @@ def _publish(routing_key: str, payload: dict):
 """
 Collection Monitoring 
 
-1. Get All Reservations 
-2. 
+For each RESERVED reservation:
+  If now > pickup_time:
+    ├─ PATCH /reservations/{id}/missed-pickup   → reservation-service
+    ├─ PATCH /listings/{id}/release             → restore quantity
+    ├─ Publish claimant.missed_collection       → triggers strike-service consumer
+    └─ Publish vendor.missed_collection         → triggers notification-service
 """
 ##################################################################################################################################
 

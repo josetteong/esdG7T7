@@ -1,7 +1,11 @@
 from shared.db import get_db
 from shared.orm_models import Strike
 
-
+##################################################################################
+"""
+Insert Strike into DB and count the number of strikes
+"""
+##################################################################################
 def insert_strike(claimant_id: int) -> None:
     with get_db() as session:
         session.add(Strike(claimant_id=claimant_id, reason="Missed pickup"))

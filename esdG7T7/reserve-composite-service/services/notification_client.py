@@ -18,7 +18,7 @@ def publish_notification(user_id: str, recipient_type: str, notif_type: str, mes
         body=json.dumps({
             "recipient_id": str(user_id),
             "recipient_type": recipient_type,
-            "notification_type": "RESERVATION_CREATED",
+            "notification_type": notif_type,
             "message": message,
         }),
         properties=pika.BasicProperties(delivery_mode=2),

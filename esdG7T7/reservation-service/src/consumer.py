@@ -15,6 +15,14 @@ EXCHANGE = "food_rescue"
 ROUTING_KEY = "listing.expired.internal"
 
 
+##################################################################################
+"""
+Listens for any exired listing to cancel any reservations through the queue called 
+internal.expired.internal to cancel any reservations for this listing and inform customers
+and vendors about it 
+"""
+##################################################################################
+
 def _on_listing_expired(channel, method, properties, body):
     data = json.loads(body)
     listing_id = data["listing_id"]

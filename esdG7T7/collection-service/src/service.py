@@ -24,7 +24,22 @@ def _publish(channel, routing_key: str, payload: dict):
     logger.info("Published %s → %s", routing_key, payload)
 
 
+##################################################################################
+"""
+Collection: When collection is done, service calls Reservation svc and Listing SVC to
+up DB stauses and also to notify both vendor and claimants about it 
+
+1. Fetch reservation, validate claimant and status=RESERVED
+2. Check pickup_time not passed (window still open)
+3. PATCH /reservations/{id}/complete   → reservation-service
+4. GET /listings/{id}                  → get listing details
+5. Publish claimant.reservation.completed
+6. Publish vendor.reservation.completed
+"""
+##################################################################################
+
 def handle_collection(reservation_id: str, claimant_id: str) -> tuple[dict, int]:
+
     resp = requests.get(f"{RESERVATION_SERVICE_URL}/reservations/{reservation_id}", timeout=10)
     if resp.status_code == 404:
         return {"error": "Reservation not found"}, 404

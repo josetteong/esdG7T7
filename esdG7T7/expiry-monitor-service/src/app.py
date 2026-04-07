@@ -40,10 +40,21 @@ def _publish(routing_key: str, payload: dict):
     except Exception as e:
         logger.error("Failed to publish to RabbitMQ: %s", e)
 
-
+##################################################################################################################################
+"""
+For each AVAILABLE or FULLY_RESERVED listing:
+  If now > expiry_time:
+    ├─ PATCH /listings/{id}/expire             → listing-service
+    └─ Publish listing.expired.internal        → reservation-service consumer
+                                                  (cascades to cancel all reservations
+                                                   and notify claimants/vendor)
+"""
+##################################################################################################################################
 def check_and_expire_listings():
     logger.info("Running expiry check...")
     try:
+
+        #Get the listing from listing svc 
         response = requests.get(f"{LISTING_SERVICE_URL}/listings", timeout=10)
         response.raise_for_status()
         listings = response.json()
@@ -62,7 +73,8 @@ def check_and_expire_listings():
         expiry_time_str = listing.get("expiry_time")
         if not expiry_time_str:
             continue
-
+        
+        #Check expiry
         expiry_time = datetime.fromisoformat(expiry_time_str)
         if expiry_time.tzinfo is None:
             expiry_time = expiry_time.replace(tzinfo=timezone.utc)
@@ -76,7 +88,7 @@ def check_and_expire_listings():
                 patch_resp.raise_for_status()
                 logger.info("Expired listing %s (%s)", listing_id, listing.get("food_name"))
                 expired_ids.append(listing_id)
-
+                #publish internal message when expired for consumption for reservation svc 
                 _publish("listing.expired.internal", {
                     "listing_id": listing_id,
                     "vendor_id": listing.get("vendor_id"),

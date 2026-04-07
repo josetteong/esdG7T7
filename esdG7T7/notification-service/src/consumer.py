@@ -30,12 +30,20 @@ ROUTING_KEYS = [
     "vendor.listing.cancelled",
 ]
 
+##################################################################################
+"""
+ When a message is consumed from the queue, this function would be onvoked and 
+ it will call create_notification which would call outsystems to send the message 
+ through telegram 
+"""
+##################################################################################
 
 def _on_message(channel, method, properties, body):
     data = json.loads(body)
     routing_key = method.routing_key
     logger.info("Received [%s]: %s", routing_key, data)
 
+    # Create a notification request 
     request = CreateNotificationRequest(
         user_id=str(data["recipient_id"]),
         recipient_type=data.get("recipient_type", "CLAIMANT"),
@@ -51,6 +59,12 @@ def _on_message(channel, method, properties, body):
 
     channel.basic_ack(delivery_tag=method.delivery_tag)
 
+
+##################################################################################
+"""
+Function called when the start_consumer() starts the thread when the service starts 
+"""
+##################################################################################
 
 def _connect_and_consume():
     while True:

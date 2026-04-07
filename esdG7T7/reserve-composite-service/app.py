@@ -17,10 +17,12 @@ def reserve(data: dict):
     if not get_eligibility(claimant_id):
         raise HTTPException(status_code=403, detail="Customer suspended")
 
+    # Calls the listing svc to edit the listing to reduce qty 
     listing = reserve_listing(listing_id, quantity, pickup_time, claimant_id)
     if not listing:
         raise HTTPException(status_code=400, detail="Reservation failed (invalid or expired)")
 
+    # Calls the reservation svc to create a reservation 
     reservation = create_reservation({
     "claimant_id": claimant_id,
     "listing_id": listing_id,
@@ -29,8 +31,11 @@ def reserve(data: dict):
     if not reservation:
         raise HTTPException(status_code=500, detail="Reservation DB failed")
 
+    # update listing
     updated_listings = get_listings()
 
+
+    # Calls the notification svc to notify claimants 
     publish_notification(
         user_id=claimant_id,
         recipient_type="CLAIMANT",

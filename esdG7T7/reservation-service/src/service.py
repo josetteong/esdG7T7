@@ -14,7 +14,11 @@ def _to_dict(r: ReservationModel) -> dict:
         "created_at": r.reserved_at,
     }
 
-
+##################################################################################
+"""
+Create a new reservation
+"""
+##################################################################################
 def create_reservation(request: CreateReservationRequest) -> dict:
     with get_db() as session:
         r = ReservationModel(
@@ -27,8 +31,11 @@ def create_reservation(request: CreateReservationRequest) -> dict:
         session.add(r)
         session.flush()
         return _to_dict(r)
-
-
+##################################################################################
+"""
+Get reservations
+"""
+##################################################################################
 def get_reservation(reservation_id: str) -> dict | None:
     with get_db() as session:
         r = session.get(ReservationModel, int(reservation_id))
@@ -40,7 +47,11 @@ def get_reservations() -> list[dict]:
         rows = session.query(ReservationModel).all()
         return [_to_dict(r) for r in rows]
 
-
+##################################################################################
+"""
+Update the status of the reservation
+"""
+##################################################################################
 def complete_reservation(reservation_id: str, claimant_id: str) -> dict | None:
     with get_db() as session:
         r = session.get(ReservationModel, int(reservation_id))
@@ -69,7 +80,11 @@ def missed_pickup(reservation_id: str) -> dict | None:
             return None
         r.reservation_status = "MISSED_PICKUP"
         return _to_dict(r)
-
+##################################################################################
+"""
+Bulk cancellation and expiration of Reservations by listings
+"""
+##################################################################################
 
 def cancel_reservations_by_listing(listing_id: str) -> list[dict]:
     with get_db() as session:

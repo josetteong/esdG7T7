@@ -25,9 +25,15 @@ def _to_dict(n: NotificationModel) -> dict:
         "sent_at": n.sent_at,
     }
 
-
+##################################################################################
+"""
+Create Notification and Send to Outsystems 
+"""
+##################################################################################
 def create_notification(request: CreateNotificationRequest) -> dict:
     with get_db() as session:
+        
+        #Add a new entry into the Notification DB
         notification = NotificationModel(
             user_id=int(request.user_id),
             recipient_type=request.recipient_type,
@@ -39,6 +45,8 @@ def create_notification(request: CreateNotificationRequest) -> dict:
         session.flush()
 
         try:
+
+            #OIST the message to Outsystems to send to send to telegram 
             response = requests.post(
                 OUTSYSTEMS_NOTIFY_URL,
                 json={
@@ -66,6 +74,11 @@ def create_notification(request: CreateNotificationRequest) -> dict:
         session.flush()
         return _to_dict(notification)
 
+##################################################################################
+"""
+Get Notification from DB
+"""
+##################################################################################
 
 def get_notification(notification_id: str) -> dict | None:
     with get_db() as session:
