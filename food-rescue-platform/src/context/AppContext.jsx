@@ -8,6 +8,7 @@ import {
   collectReservationApi,
   cancelClaimantReservation,
   cancelVendorListing,
+  getVendor,
   getStrikeCount,
   getClaimantEligibility,
 } from '../services/api'
@@ -38,7 +39,7 @@ const reservationStatusToUi = {
   MISSED_PICKUP: 'Cancelled',
 }
 
-const toUiListing = (l) => ({
+const toUiListing = (l, vendorNameMap = {}) => ({
   id: Number(l.id),
   vendorId: String(l.vendor_id),
   desc: l.food_name,
@@ -48,9 +49,9 @@ const toUiListing = (l) => ({
   expiry: l.expiry_time,
   status: listingStatusToUi[l.status] ?? 'Available',
   notes: '',
-  collectWindowMins: 60,
+  collectWindowMins: l.collect_window_mins ?? 60,
   createdAt: l.created_at,
-  vendorName: `Vendor #${l.vendor_id}`,
+  vendorName: vendorNameMap[l.vendor_id] ?? `Vendor #${l.vendor_id}`,
 })
 
 const toUiReservation = (r, listingMap) => {
@@ -95,7 +96,18 @@ export function AppProvider({ children }) {
     setLoading(true)
     try {
       const [listingRows, reservationRows] = await Promise.all([getListings(), getReservations()])
-      const mappedListings = listingRows.map(toUiListing)
+
+      // Fetch vendor names for all unique vendor IDs in parallel
+      const uniqueVendorIds = [...new Set(listingRows.map((l) => l.vendor_id))]
+      const vendorResults = await Promise.allSettled(uniqueVendorIds.map((id) => getVendor(id)))
+      const vendorNameMap = {}
+      uniqueVendorIds.forEach((id, i) => {
+        if (vendorResults[i].status === 'fulfilled') {
+          vendorNameMap[id] = vendorResults[i].value.vendor_name
+        }
+      })
+
+      const mappedListings = listingRows.map((l) => toUiListing(l, vendorNameMap))
       const listingMap = new Map(mappedListings.map((l) => [l.id, l]))
       const mappedReservations = reservationRows.map((r) => toUiReservation(r, listingMap))
 
@@ -146,6 +158,7 @@ export function AppProvider({ children }) {
         food_name: fields.desc,
         total_quantity: Number(fields.qty),
         expiry_time: new Date(fields.expiry).toISOString(),
+        collect_window_mins: Number(fields.collectWindowMins),
       })
       await refreshData()
     },

@@ -80,7 +80,7 @@ def cancel_reservations_by_listing(listing_id: str) -> list[dict]:
         for r in rows:
             r.reservation_status = "CANCELLED"
             r.cancelled_at = datetime.now(timezone.utc)
-            r.cancellation_type = "VENDOR_CANCELLED"
+            r.cancellation_type = "VENDOR"
         return [_to_dict(r) for r in rows]
 
 
