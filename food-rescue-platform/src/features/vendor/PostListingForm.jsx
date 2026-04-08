@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { useApp } from '../../context/AppContext'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../shared/Toast'
@@ -10,12 +10,16 @@ export default function PostListingForm() {
   const toast = useToast()
 
   const [form, setForm] = useState({ desc: '', qty: '', cat: '', expiry: '', collectWindowMins: '', notes: '' })
+  const [submitting, setSubmitting] = useState(false)
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }))
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (submitting) return
+    setSubmitting(true)
     if (!form.desc || !form.qty || !form.cat || !form.expiry || !form.collectWindowMins) {
       toast('Missing fields', 'Please fill in all required fields.', 'warning')
+      setSubmitting(false)
       return
     }
     try {
@@ -27,6 +31,8 @@ export default function PostListingForm() {
       setForm({ desc: '', qty: '', cat: '', expiry: '', collectWindowMins: '', notes: '' })
     } catch (err) {
       toast('Unable to post listing', err.message || 'Please try again.', 'error')
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -89,9 +95,9 @@ export default function PostListingForm() {
           <span>Claimants must collect within the window after reserving. Uncollected slots auto-release (max 60 min).</span>
         </div>
 
-        <button type="submit" style={{ width: '100%', background: '#C8473A', color: '#fff', border: 'none', borderRadius: 10, padding: '11px', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+        <button type="submit" disabled={submitting} aria-disabled={submitting} style={{ width: '100%', background: submitting ? '#D9A19C' : '#C8473A', color: '#fff', border: 'none', borderRadius: 10, padding: '11px', fontSize: 13, fontWeight: 500, cursor: submitting ? 'not-allowed' : 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="white" strokeWidth="1.6" strokeLinecap="round" /></svg>
-          Post listing
+          {submitting ? 'Posting…' : 'Post listing'}
         </button>
       </form>
     </div>

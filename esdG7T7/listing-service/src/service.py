@@ -1,7 +1,7 @@
 from shared.db import get_db
 from shared.orm_models import Listing as ListingModel
 from .schemas import CreateListingRequest, ReserveRequest, ReleaseRequest, MarkCollectedRequest
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 
 def _to_dict(listing: ListingModel) -> dict:
@@ -20,6 +20,24 @@ def _to_dict(listing: ListingModel) -> dict:
 
 def create_listing(request: CreateListingRequest) -> dict:
     with get_db() as session:
+        # Idempotency guard: treat rapid identical POSTs as the same request
+        now = datetime.now(timezone.utc)
+        window = now - timedelta(seconds=10)
+        existing = (
+            session.query(ListingModel)
+            .filter(
+                ListingModel.vendor_id == int(request.vendor_id),
+                ListingModel.food_name == request.food_name,
+                ListingModel.total_quantity == request.total_quantity,
+                ListingModel.expiry_time == request.expiry_time,
+                ListingModel.created_at >= window,
+            )
+            .order_by(ListingModel.created_at.desc())
+            .first()
+        )
+        if existing:
+            return _to_dict(existing)
+
         listing = ListingModel(
             vendor_id=int(request.vendor_id),
             food_name=request.food_name,
