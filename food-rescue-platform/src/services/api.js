@@ -70,7 +70,7 @@ export const cancelClaimantReservation = (payload) =>
 
 export const cancelVendorListing = (payload) =>
   apiFetch('/vendor/cancel', {
-    method: 'PATCH',
+    method: 'POST',
     body: JSON.stringify(payload),
   })
 

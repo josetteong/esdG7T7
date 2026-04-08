@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 from datetime import datetime
 from services.strike_client import get_eligibility
 from services.listing_client import reserve_listing, get_listings
@@ -7,12 +8,20 @@ from services.notification_client import publish_notification
 
 app = FastAPI(title="Reserve Composite Service")
 
+
+class ReserveRequest(BaseModel):
+    claimant_id: int
+    listing_id: int
+    reservation_qty: int
+    pickup_time: datetime
+
+
 @app.post("/reserve")
-def reserve(data: dict):
-    claimant_id = data["claimant_id"]
-    listing_id = data["listing_id"]
-    quantity = data["reservation_qty"]
-    pickup_time = datetime.fromisoformat(data["pickup_time"])
+def reserve(data: ReserveRequest):
+    claimant_id = data.claimant_id
+    listing_id = data.listing_id
+    quantity = data.reservation_qty
+    pickup_time = data.pickup_time
 
     if not get_eligibility(claimant_id):
         raise HTTPException(status_code=403, detail="Customer suspended")
@@ -25,7 +34,7 @@ def reserve(data: dict):
     "claimant_id": claimant_id,
     "listing_id": listing_id,
     "reservation_qty": quantity,
-    "pickup_time": data["pickup_time"]})
+    "pickup_time": data.pickup_time.isoformat()})
     if not reservation:
         raise HTTPException(status_code=500, detail="Reservation DB failed")
 

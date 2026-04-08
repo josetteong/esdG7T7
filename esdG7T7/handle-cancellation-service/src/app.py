@@ -28,7 +28,7 @@ def cancel():
     return jsonify(result), status_code
 
 
-@app.route("/vendor/cancel", methods=["PATCH"])
+@app.route("/vendor/cancel", methods=["POST"])
 def vendor_cancel():
     body = request.get_json()
     listing_id = body.get("listing_id")

@@ -55,7 +55,7 @@ paths:
           description: Reservation is not in RESERVED status
 
   /vendor/cancel:
-    patch:
+    post:
       summary: Cancel a listing as a vendor
       description: >
         Cancels the listing and all active reservations under it.
