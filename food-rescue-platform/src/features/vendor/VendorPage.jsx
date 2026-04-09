@@ -4,11 +4,12 @@ import PostListingForm from './PostListingForm'
 import VendorListings from './VendorListings'
 
 export default function VendorPage() {
-  const { listings } = useApp()
+  const { listings, reservations } = useApp()
   const { user } = useAuth()
   const mine = listings.filter((l) => String(l.vendorId) === String(user.id))
+  const mineIds = new Set(mine.map((l) => l.id))
   const active = mine.filter((l) => l.status === 'Available').length
-  const collected = mine.filter((l) => l.status === 'Collected').length
+  const collected = reservations.filter((r) => mineIds.has(r.listingId) && r.status === 'Completed').length
   const cancelled = mine.filter((l) => ['Cancelled', 'Expired'].includes(l.status)).length
 
   const today = new Date().toLocaleDateString('en-SG', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
