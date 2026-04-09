@@ -15,7 +15,7 @@ def health():
     return jsonify({"status": "ok"})
 
 
-@app.route("/claimant/cancel", methods=["POST"])
+@app.route("/claimant/cancel", methods=["PATCH"])
 def cancel():
     body = request.get_json()
     reservation_id = body.get("reservation_id")
@@ -28,7 +28,7 @@ def cancel():
     return jsonify(result), status_code
 
 
-@app.route("/vendor/cancel", methods=["POST"])
+@app.route("/vendor/cancel", methods=["PATCH"])
 def vendor_cancel():
     body = request.get_json()
     listing_id = body.get("listing_id")

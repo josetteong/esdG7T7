@@ -11,7 +11,7 @@ paths:
           description: OK
 
   /claimant/cancel:
-    post:
+    patch:
       summary: Cancel a reservation as a claimant
       description: >
         Applies a strike if cancelled more than 10 minutes after reservation was made.
@@ -55,7 +55,7 @@ paths:
           description: Reservation is not in RESERVED status
 
   /vendor/cancel:
-    post:
+    patch:
       summary: Cancel a listing as a vendor
       description: >
         Cancels the listing and all active reservations under it.
