@@ -64,13 +64,13 @@ export const collectReservationApi = (payload) =>
 
 export const cancelClaimantReservation = (payload) =>
   apiFetch('/claimant/cancel', {
-    method: 'PATCH',
+    method: 'POST',
     body: JSON.stringify(payload),
   })
 
 export const cancelVendorListing = (payload) =>
   apiFetch('/vendor/cancel', {
-    method: 'PATCH',
+    method: 'POST',
     body: JSON.stringify(payload),
   })
 
