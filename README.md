@@ -85,12 +85,19 @@ cd esdG7T7
 The environment variables are provided in `esdG7T7/.env.txt`. Copy the contents into a new file named `.env` in the same directory:
 
 ```bash
-cp esdG7T7/.env.txt esdG7T7/.env
+cp esdG7T7/env.txt esdG7T7/.env
 ```
 
 See [Environment Variables](#environment-variables) for details on each variable.
 
-### 3. Start Backend Services
+### 3. Deploy Notification Service to OutSystems
+
+1. Open [OutSystems Service Studio](https://www.outsystems.com/downloads/)
+2. Log in to your OutSystems environment
+3. Go to **File > Open** and select `G7T7_Smart Food Rescue.oap`
+4. Click **1-Click Publish** to deploy the application to your environment
+
+### 4. Start Backend Services
 
 ```bash
 cd esdG7T7
@@ -99,7 +106,7 @@ docker compose up --build
 
 All services will start on their respective ports. The Kong API Gateway is accessible at `http://localhost:9000`.
 
-### 4. Start the Frontend
+### 5. Start the Frontend
 
 ```bash
 cd food-rescue-platform
